@@ -7,7 +7,12 @@ public class AnswerCsvConverter extends AbstractCsvConverter {
 
     @Override
     public Object convertToRead(String value) {
-        var valueArr = value.split("%");
-        return new Answer(valueArr[0], Boolean.parseBoolean(valueArr[1]));
+        if (value == null) {
+            return new Answer("", false);
+        }
+        String[] parts = value.split("%", 2);
+        String text = parts.length > 0 ? parts[0] : "";
+        var isCorrect = parts.length > 1 && Boolean.parseBoolean(parts[1]);
+        return new Answer(text, isCorrect);
     }
 }
