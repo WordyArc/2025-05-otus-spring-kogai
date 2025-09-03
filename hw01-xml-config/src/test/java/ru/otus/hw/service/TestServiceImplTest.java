@@ -15,11 +15,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@DisplayName("TestServiceImpl")
 class TestServiceImplTest {
 
     private IOService ioService;
-    private TestServiceImpl testService; // SUT
+    private TestServiceImpl testService;
 
     @BeforeEach
     void setUp() {
