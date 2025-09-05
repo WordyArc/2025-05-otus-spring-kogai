@@ -3,7 +3,13 @@ package ru.otus.hw.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -15,7 +21,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -24,30 +29,34 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.inOrder;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.STRICT_STUBS)
 class TestServiceImplTest {
 
+    @Mock
     private IOService io;
+
+    @Mock
     private QuestionDao dao;
+
+    @InjectMocks
     private TestServiceImpl service;
 
     private Student student;
 
     @BeforeEach
     void setUp() {
-        // given
-        io = mock(IOService.class);
-        dao = mock(QuestionDao.class);
-        service = new TestServiceImpl(io, dao);
         student = new Student("John", "Doe");
-
-        when(dao.findAll()).thenReturn(createSampleQuestions());
-        when(io.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
-                .thenReturn(1, 1);
     }
 
     @Test
     @DisplayName("prints header and questions with options in declared order (visual contract)")
     void printsQuestionsAndOptionsInOrder() {
+        // given
+        when(dao.findAll()).thenReturn(createSampleQuestions());
+        when(io.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
+                .thenReturn(1, 1);
+
         // when
         service.executeTestFor(student);
 
@@ -84,6 +93,7 @@ class TestServiceImplTest {
     @DisplayName("computes right answers based on user choices")
     void computesRightAnswersFromUserChoices() {
         // given
+        when(dao.findAll()).thenReturn(createSampleQuestions());
         when(io.readIntForRangeWithPrompt(anyInt(), anyInt(), anyString(), anyString()))
                 .thenReturn(1, 2);
 
@@ -104,24 +114,21 @@ class TestServiceImplTest {
     @DisplayName("returns empty result and prints only header when there are no questions")
     void returnsEmptyResultWhenNoQuestions() {
         // given
-        IOService localIo = mock(IOService.class);
-        QuestionDao emptyDao = mock(QuestionDao.class);
-        when(emptyDao.findAll()).thenReturn(List.of());
-        TestServiceImpl localSut = new TestServiceImpl(localIo, emptyDao);
+        when(dao.findAll()).thenReturn(List.of());
 
         // when
-        TestResult result = localSut.executeTestFor(student);
+        TestResult result = service.executeTestFor(student);
 
         // then
-        InOrder inOrder = inOrder(localIo);
-        inOrder.verify(localIo).printLine("");
-        inOrder.verify(localIo).printFormattedLine("Please answer the questions below%n");
+        InOrder inOrder = inOrder(io);
+        inOrder.verify(io).printLine("");
+        inOrder.verify(io).printFormattedLine("Please answer the questions below%n");
         assertThat(result.getAnsweredQuestions()).isEmpty();
         assertThat(result.getRightAnswersCount()).isZero();
 
-        verifyNoMoreInteractions(localIo);
-        verify(emptyDao).findAll();
-        verifyNoMoreInteractions(emptyDao);
+        verifyNoMoreInteractions(io);
+        verify(dao).findAll();
+        verifyNoMoreInteractions(dao);
     }
 
     private static List<Question> createSampleQuestions() {
