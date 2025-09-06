@@ -35,7 +35,6 @@ public class TestServiceImpl implements TestService {
         if (questions.isEmpty()) {
             return result;
         }
-
         for (int i = 0; i < questions.size(); i++) {
             final var question = questions.get(i);
             printQuestion(question, i + 1);
@@ -46,7 +45,6 @@ public class TestServiceImpl implements TestService {
             int choice = ioService.readIntForRangeWithPromptLocalized(
                     1, answers.size(), ENTER_OPTION_KEY, INVALID_OPTION_KEY
             );
-
             boolean isCorrect = answers.get(choice - 1).isCorrect();
             result.applyAnswer(question, isCorrect);
         }
