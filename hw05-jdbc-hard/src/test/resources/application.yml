@@ -6,3 +6,5 @@ spring:
       mode: always
       data-locations: data.sql
       schema-locations: schema.sql
+  liquibase:
+    enabled: false
