@@ -3,13 +3,10 @@ package ru.otus.hw.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Answer;
 import ru.otus.hw.domain.Question;
@@ -20,15 +17,15 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.STRICT_STUBS)
+
+@SpringBootTest(classes = TestServiceImpl.class)
 class TestServiceImplTest {
 
     private static final String KEY_HEADER = "TestService.answer.the.questions";
@@ -37,14 +34,14 @@ class TestServiceImplTest {
 
     private static final int ANSWERS_COUNT = 3;
 
-    @Mock
+    @Autowired
+    private TestServiceImpl service;
+
+    @MockitoBean
     private LocalizedIOService io;
 
-    @Mock
+    @MockitoBean
     private QuestionDao dao;
-
-    @InjectMocks
-    private TestServiceImpl service;
 
     private Student student;
 

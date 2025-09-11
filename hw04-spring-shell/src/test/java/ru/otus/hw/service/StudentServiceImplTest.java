@@ -2,27 +2,26 @@ package ru.otus.hw.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.domain.Student;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = StudentServiceImpl.class)
 class StudentServiceImplTest {
 
     private static final String KEY_FIRST_NAME = "StudentService.input.first.name";
     private static final String KEY_LAST_NAME = "StudentService.input.last.name";
 
-    @Mock
+    @MockitoBean
     private LocalizedIOService ioService;
 
-    @InjectMocks
+    @Autowired
     private StudentServiceImpl service;
 
     @Test

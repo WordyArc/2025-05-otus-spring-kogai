@@ -2,10 +2,9 @@ package ru.otus.hw.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.otus.hw.config.TestConfig;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.Student;
@@ -15,11 +14,11 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = ResultServiceImpl.class)
 class ResultServiceImplTest {
 
     private static final String KEY_RESULTS = "ResultService.test.results";
@@ -29,13 +28,13 @@ class ResultServiceImplTest {
     private static final String KEY_PASSED = "ResultService.passed.test";
     private static final String KEY_FAILED = "ResultService.fail.test";
 
-    @Mock
+    @MockitoBean
     private TestConfig config;
 
-    @Mock
+    @MockitoBean
     private LocalizedIOService io;
 
-    @InjectMocks
+    @Autowired
     private ResultServiceImpl service;
 
     @Test
