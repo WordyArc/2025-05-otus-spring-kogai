@@ -9,4 +9,6 @@
     <include file="db/changelog/1.0/2025-09-09--create-genres_table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/1.0/2025-09-09--create-books_table.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/1.0/2025-09-09--create-books_genres_table.xml" relativeToChangelogFile="false"/>
+
+    <include file="db/changelog/2.0/2025-09-12--create-comments_table.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
