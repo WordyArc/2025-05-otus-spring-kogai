@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("Репозиторий на основе Jdbc для работы с книгами ")
 @JdbcTest
@@ -36,6 +38,21 @@ class JdbcBookRepositoryTest {
         dbAuthors = getDbAuthors();
         dbGenres = getDbGenres();
         dbBooks = getDbBooks(dbAuthors, dbGenres);
+    }
+
+    @Test
+    @DisplayName("should throw EntityNotFoundException when updating a non-existing book id")
+    void shouldThrowWhenUpdatingMissingBook() {
+        var nonExisting = new Book(
+                9999L,
+                "GhostTitle",
+                new Author(1, "Author_1"),
+                List.of(new Genre(1, "Genre_1"))
+        );
+
+        assertThatThrownBy(() -> repositoryJdbc.save(nonExisting))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Book with id 9999 not found");
     }
 
     @DisplayName("должен загружать книгу по id")
