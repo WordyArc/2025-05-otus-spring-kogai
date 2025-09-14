@@ -7,8 +7,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -17,36 +15,32 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.BatchSize;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "books")
+@Table(name = "comments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@ToString(of = {"id", "title"})
-public class Book {
+@ToString(of = {"id", "text", "createdAt"})
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private long id;
 
-    @Column(name = "title")
-    private String title;
+    @Column(name = "text", nullable = false, length = 1024)
+    private String text;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "author_id")
-    private Author author;
+    @JoinColumn(name = "book_id")
+    private Book book;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "books_genres",
-            joinColumns = @JoinColumn(name = "book_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id"))
-    @BatchSize(size = 50)
-    private List<Genre> genres;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
 }
