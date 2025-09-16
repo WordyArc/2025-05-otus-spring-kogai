@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookRepository {
-    Optional<Book> findById(long id);
+    Optional<Book> findById(Long id);
 
     List<Book> findAll();
 
     Book save(Book book);
 
-    void deleteById(long id);
+    void deleteById(Long id);
 }
