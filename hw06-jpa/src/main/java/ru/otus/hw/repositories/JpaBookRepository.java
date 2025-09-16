@@ -1,8 +1,8 @@
 package ru.otus.hw.repositories;
 
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Book;
@@ -11,39 +11,31 @@ import ru.otus.hw.models.Genre;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 @Repository
 public class JpaBookRepository implements BookRepository {
 
+    private static final String FETCH_GRAPH_HINT = "jakarta.persistence.fetchgraph";
+
     @PersistenceContext
     private EntityManager entityManager;
 
     @Override
     public Optional<Book> findById(Long id) {
-        List<Book> books = entityManager.createQuery("""
-                        SELECT DISTINCT b
-                        FROM Book b
-                          JOIN FETCH b.author a
-                          LEFT JOIN FETCH b.genres g
-                        WHERE b.id = :id
-                        """, Book.class)
-                .setParameter("id", id)
-                .getResultList();
-        return books.stream().findFirst();
+        EntityGraph<?> graph = entityManager.getEntityGraph("book.withAuthorAndGenres");
+        Map<String, Object> hints = Map.of(FETCH_GRAPH_HINT, graph);
+        return Optional.ofNullable(entityManager.find(Book.class, id, hints));
     }
 
     @Override
     public List<Book> findAll() {
-        List<Book> books = entityManager.createQuery("""
-                SELECT b FROM Book b
-                    JOIN FETCH b.author a
-                ORDER BY b.id
-                """, Book.class).getResultList();
-
-        books.forEach(book -> Hibernate.initialize(book.getGenres()));
-        return books;
+        EntityGraph<?> graph = entityManager.getEntityGraph("book.withAuthorAndGenres");
+        return entityManager.createQuery("select distinct b from Book b order by b.id", Book.class)
+                .setHint(FETCH_GRAPH_HINT, graph)
+                .getResultList();
     }
 
     @Override
