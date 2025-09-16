@@ -8,5 +8,5 @@ import java.util.Optional;
 public interface AuthorRepository {
     List<Author> findAll();
 
-    Optional<Author> findById(long id);
+    Optional<Author> findById(Long id);
 }
