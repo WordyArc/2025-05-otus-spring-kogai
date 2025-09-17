@@ -5,9 +5,15 @@ spring:
     init:
       mode: always
       data-locations: classpath:data.sql
-      schema-locations: classpath:schema.sql
+      schema-locations: []
   jpa:
     hibernate:
       ddl-auto: none
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
