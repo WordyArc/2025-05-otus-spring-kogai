@@ -92,5 +92,4 @@ class JpaCommentRepositoryTest {
         assertThat(commentRepository.findById(saved.getId())).isEmpty();
     }
 
-
 }
