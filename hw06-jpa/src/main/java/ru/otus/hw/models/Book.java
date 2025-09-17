@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,13 +34,19 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(of = {"id", "title"})
-@NamedEntityGraph(
-        name = "book.withAuthorAndGenres",
-        attributeNodes = {
-                @NamedAttributeNode("author"),
-                @NamedAttributeNode("genres")
-        }
-)
+@NamedEntityGraphs({
+        @NamedEntityGraph(
+                name = "book.withAuthor",
+                attributeNodes = @NamedAttributeNode("author")
+        ),
+        @NamedEntityGraph(
+                name = "book.withAuthorAndGenres",
+                attributeNodes = {
+                        @NamedAttributeNode("author"),
+                        @NamedAttributeNode("genres")
+                }
+        )
+})
 public class Book {
 
     @Id
