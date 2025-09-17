@@ -15,13 +15,22 @@ public class JpaCommentRepository implements CommentRepository {
 
     @Override
     public Optional<Comment> findById(Long id) {
-        return Optional.ofNullable(entityManager.find(Comment.class, id));
+        List<Comment> list = entityManager.createQuery("""
+                        select c
+                        from Comment c
+                        join fetch c.book
+                        where c.id = :id
+                        """, Comment.class)
+                .setParameter("id", id)
+                .getResultList();
+        return list.stream().findFirst();
     }
 
     @Override
     public List<Comment> findAllByBookId(Long bookId) {
         return entityManager.createQuery("""
                         select c from Comment c
+                        join fetch c.book
                         where c.book.id = :bookId
                         order by c.id
                         """, Comment.class)

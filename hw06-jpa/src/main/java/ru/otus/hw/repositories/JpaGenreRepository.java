@@ -17,7 +17,7 @@ public class JpaGenreRepository implements GenreRepository {
 
     @Override
     public List<Genre> findAll() {
-        return entityManager.createQuery("SELECT g FROM Genre g ORDER BY g.id", Genre.class)
+        return entityManager.createQuery("select g from Genre g order by g.id", Genre.class)
                 .getResultList();
     }
 
@@ -27,9 +27,9 @@ public class JpaGenreRepository implements GenreRepository {
             return Collections.emptyList();
         }
         return entityManager.createQuery("""
-                        SELECT g FROM Genre g
-                        WHERE g.id in :ids
-                        ORDER BY g.id
+                        select g from Genre g
+                        where g.id in :ids
+                        order by g.id
                         """, Genre.class)
                 .setParameter("ids", ids)
                 .getResultList();
