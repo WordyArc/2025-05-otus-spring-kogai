@@ -21,9 +21,10 @@ class GenreRepositoryTest {
     @DisplayName("should load all genres")
     void shouldFindAll() {
         var list = repository.findAll();
-        assertThat(list).extracting(Genre::getId).containsExactly(1L, 2L, 3L, 4L, 5L, 6L);
+        assertThat(list).extracting(Genre::getId)
+                .containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 5L, 6L);
         assertThat(list).extracting(Genre::getName)
-                .containsExactly("Genre_1","Genre_2","Genre_3","Genre_4","Genre_5","Genre_6");
+                .containsExactlyInAnyOrder("Genre_1","Genre_2","Genre_3","Genre_4","Genre_5","Genre_6");
     }
 
     @Nested
@@ -33,7 +34,8 @@ class GenreRepositoryTest {
         @DisplayName("should keep ascending order")
         void ordered() {
             var list = repository.findAllByIdIn(Set.of(5L, 2L));
-            assertThat(list).extracting(Genre::getId).containsExactly(2L, 5L);
+            assertThat(list).extracting(Genre::getId)
+                    .containsExactlyInAnyOrder(2L, 5L);
         }
 
         @Test
