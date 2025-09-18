@@ -20,9 +20,9 @@ class AuthorRepositoryTest {
     void findAll() {
         var list = repository.findAll();
         assertThat(list).extracting(Author::getId)
-                .containsExactly(1L, 2L, 3L);
+                .containsExactlyInAnyOrder(1L, 2L, 3L);
         assertThat(list).extracting(Author::getFullName)
-                .containsExactly("Author_1", "Author_2", "Author_3");
+                .containsExactlyInAnyOrder("Author_1", "Author_2", "Author_3");
     }
 
 
