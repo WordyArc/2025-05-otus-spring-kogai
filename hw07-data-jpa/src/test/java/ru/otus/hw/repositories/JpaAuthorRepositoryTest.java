@@ -5,17 +5,15 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Author;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(JpaAuthorRepository.class)
 class JpaAuthorRepositoryTest {
 
     @Autowired
-    private JpaAuthorRepository repository;
+    private AuthorRepository repository;
 
     @Test
     @DisplayName("should load all authors in deterministic order")

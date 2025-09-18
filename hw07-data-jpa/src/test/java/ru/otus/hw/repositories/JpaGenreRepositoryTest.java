@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Genre;
 
 import java.util.Set;
@@ -13,11 +12,10 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(JpaGenreRepository.class)
 class JpaGenreRepositoryTest {
 
     @Autowired
-    private JpaGenreRepository repository;
+    private GenreRepository repository;
 
     @Test
     @DisplayName("should load all genres")
@@ -34,14 +32,14 @@ class JpaGenreRepositoryTest {
         @Test
         @DisplayName("should keep ascending order")
         void ordered() {
-            var list = repository.findAllByIds(Set.of(5L, 2L));
+            var list = repository.findAllByIdIn(Set.of(5L, 2L));
             assertThat(list).extracting(Genre::getId).containsExactly(2L, 5L);
         }
 
         @Test
         @DisplayName("should return empty for empty ids")
         void empty() {
-            assertThat(repository.findAllByIds(Set.of())).isEmpty();
+            assertThat(repository.findAllByIdIn(Set.of())).isEmpty();
         }
     }
 }
