@@ -10,7 +10,7 @@ import ru.otus.hw.models.Author;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-class JpaAuthorRepositoryTest {
+class AuthorRepositoryTest {
 
     @Autowired
     private AuthorRepository repository;
@@ -19,7 +19,8 @@ class JpaAuthorRepositoryTest {
     @DisplayName("should load all authors in deterministic order")
     void findAll() {
         var list = repository.findAll();
-        assertThat(list).extracting(Author::getId).containsExactly(1L, 2L, 3L);
+        assertThat(list).extracting(Author::getId)
+                .containsExactly(1L, 2L, 3L);
         assertThat(list).extracting(Author::getFullName)
                 .containsExactly("Author_1", "Author_2", "Author_3");
     }

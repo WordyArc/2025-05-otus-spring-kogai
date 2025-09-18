@@ -10,7 +10,7 @@ import ru.otus.hw.models.Book;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-class JpaBookRepositoryTest {
+class BookRepositoryTest {
 
     @Autowired
     private BookRepository repository;
