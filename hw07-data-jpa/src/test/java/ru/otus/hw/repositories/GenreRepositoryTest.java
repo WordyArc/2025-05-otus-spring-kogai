@@ -12,7 +12,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-class JpaGenreRepositoryTest {
+class GenreRepositoryTest {
 
     @Autowired
     private GenreRepository repository;
