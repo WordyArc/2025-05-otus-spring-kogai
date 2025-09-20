@@ -19,7 +19,7 @@ class BookServiceTest {
     private BookService bookService;
 
     @Test
-    @DisplayName("findById returns book with accessible relations outside tx")
+    @DisplayName("findById returns book with author & genres")
     void findById() {
         var book = bookService.findById(1L).orElseThrow();
         assertThat(book.getAuthor().getFullName()).isEqualTo("Author_1");

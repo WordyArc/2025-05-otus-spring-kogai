@@ -21,7 +21,7 @@ class JpaBookRepositoryTest {
     private TestEntityManager entityManager;
 
     @Test
-    @DisplayName("should find book by id with author and genres fetched")
+    @DisplayName("should find book by id with author and genres")
     void shouldFindById() {
         var book = repository.findById(1L).orElseThrow();
         assertThat(book.getTitle()).isEqualTo("BookTitle_1");
@@ -30,7 +30,7 @@ class JpaBookRepositoryTest {
     }
 
     @Test
-    @DisplayName("should return all books with author and genres fetched")
+    @DisplayName("should return all books with author and genres")
     void shouldFindAll() {
         var list = repository.findAll();
         assertThat(list).hasSize(3);
