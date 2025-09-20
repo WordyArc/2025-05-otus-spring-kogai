@@ -19,15 +19,16 @@ class BookServiceTest {
     private BookService bookService;
 
     @Test
-    @DisplayName("findById returns book with accessible relations outside tx")
+    @DisplayName("findById returns book with author & genres")
     void findById() {
-        var book = bookService.findById(1L).orElseThrow();
+        var book = bookService.findById("b1").orElseThrow();
+        assertThat(book.getTitle()).isEqualTo("BookTitle_1");
         assertThat(book.getAuthor().getFullName()).isEqualTo("Author_1");
-        assertThat(book.getGenres()).isNotEmpty();
+        assertThat(book.getGenres()).hasSize(2);
     }
 
     @Test
-    @DisplayName("findAll returns books with accessible relations")
+    @DisplayName("findAll returns books with relations")
     void findAll() {
         var books = bookService.findAll();
         assertThat(books).hasSize(3);
@@ -40,15 +41,15 @@ class BookServiceTest {
     @Test
     @DisplayName("insert should throw when author does not exist")
     void insertMissingAuthor() {
-        assertThatThrownBy(() -> bookService.insert("T", 777L, Set.of(1L)))
+        assertThatThrownBy(() -> bookService.insert("T", "no-author", Set.of("g1")))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Author with id 777 not found");
+                .hasMessageContaining("Author with id no-author not found");
     }
 
     @Test
     @DisplayName("insert should throw when any genre does not exist")
     void insertMissingGenre() {
-        assertThatThrownBy(() -> bookService.insert("T", 1L, Set.of(1L, 999L)))
+        assertThatThrownBy(() -> bookService.insert("T", "a1", Set.of("g1", "bad")))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("One or all genres");
     }
@@ -56,15 +57,15 @@ class BookServiceTest {
     @Test
     @DisplayName("update should throw when book id does not exist")
     void updateMissingBook() {
-        assertThatThrownBy(() -> bookService.update(9999L, "Edited", 1L, Set.of(1L,2L)))
+        assertThatThrownBy(() -> bookService.update("no-book", "Edited", "a1", Set.of("g1","g2")))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Book with id 9999 not found");
+                .hasMessageContaining("Book with id no-book not found");
     }
 
     @Test
     @DisplayName("insert should throw on empty genres set")
     void insertEmptyGenres() {
-        assertThatThrownBy(() -> bookService.insert("T", 1L, Set.of()))
+        assertThatThrownBy(() -> bookService.insert("T", "a1", Set.of()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
