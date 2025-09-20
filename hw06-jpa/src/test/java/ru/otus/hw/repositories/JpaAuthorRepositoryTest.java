@@ -18,7 +18,7 @@ class JpaAuthorRepositoryTest {
     private JpaAuthorRepository repository;
 
     @Test
-    @DisplayName("should load all authors in deterministic order")
+    @DisplayName("should load all authors")
     void findAll() {
         var list = repository.findAll();
         assertThat(list).extracting(Author::getId).containsExactly(1L, 2L, 3L);

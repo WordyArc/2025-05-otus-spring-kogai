@@ -16,7 +16,7 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("create & findById returns comment with accessible book outside tx")
+    @DisplayName("create & findById returns comment with accessible book")
     void createAndRead() {
         var created = commentService.create(1L, "Great!");
         var loaded = commentService.findById(created.getId()).orElseThrow();
@@ -25,7 +25,7 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("findAllByBookId returns only related comments")
+    @DisplayName("findAllByBookId returns only related comments with book")
     void findAllByBookId() {
         var c = commentService.create(1L, "c1");
         var list = commentService.findAllByBookId(1L);
