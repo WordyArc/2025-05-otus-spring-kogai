@@ -8,7 +8,11 @@ spring:
     script:
       enabled: false
 
-de.flapdoodle.mongodb.embedded.version: 7.0.4
+logging:
+  level:
+    org.mongodb.driver.cluster: error
+
 mongock:
+  enabled: false
   migration-scan-package:
     - ru.otus.hw.migrations
