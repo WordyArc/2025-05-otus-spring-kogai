@@ -2,7 +2,6 @@ package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
@@ -21,40 +20,48 @@ public class CommentServiceImpl implements CommentService {
     private final BookRepository bookRepository;
 
     @Override
-    @Transactional(readOnly = true)
-    public Optional<Comment> findById(Long id) {
-        return commentRepository.findById(id);
+    public Optional<Comment> findById(String id) {
+        Optional<Comment> comment = commentRepository.findById(id);
+        comment.ifPresent(this::attachBook);
+
+        return comment;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Comment> findAllByBookId(Long bookId) {
-        return commentRepository.findAllByBookId(bookId);
+    public List<Comment> findAllByBookId(String bookId) {
+        List<Comment> comments = commentRepository.findAllByBookId(bookId);
+        comments.forEach(this::attachBook);
+
+        return comments;
     }
 
     @Override
-    @Transactional
-    public Comment create(Long bookId, String text) {
-        if (!bookRepository.existsById(bookId)) {
-            throw new EntityNotFoundException("Book with id %d not found".formatted(bookId));
-        }
-        var bookRef = bookRepository.getReferenceById(bookId);
-        var comment = new Comment(null, text, bookRef, LocalDateTime.now());
-        return commentRepository.save(comment);
+    public Comment create(String bookId, String text) {
+        var book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id %s not found".formatted(bookId)));
+        var saved = commentRepository.save(new Comment(null, text, book.getId(), LocalDateTime.now(), null));
+        saved.setBook(book);
+        
+        return saved;
     }
 
     @Override
-    @Transactional
-    public Comment update(Long id, String newText) {
+    public Comment update(String id, String newText) {
         var comment = commentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Comment with id %d not found".formatted(id)));
+                .orElseThrow(() -> new EntityNotFoundException("Comment with id %s not found".formatted(id)));
         comment.setText(newText);
-        return commentRepository.save(comment);
+        var saved = commentRepository.save(comment);
+        attachBook(saved);
+
+        return saved;
     }
 
     @Override
-    @Transactional
-    public void deleteById(Long id) {
+    public void deleteById(String id) {
         commentRepository.deleteById(id);
+    }
+
+    private void attachBook(Comment comment) {
+        bookRepository.findById(comment.getId()).ifPresent(comment::setBook);
     }
 }
