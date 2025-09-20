@@ -16,7 +16,7 @@ class AuthorRepositoryTest {
     private AuthorRepository repository;
 
     @Test
-    @DisplayName("should load all authors in deterministic order")
+    @DisplayName("should load all authors")
     void findAll() {
         var list = repository.findAll();
         assertThat(list).extracting(Author::getId)
