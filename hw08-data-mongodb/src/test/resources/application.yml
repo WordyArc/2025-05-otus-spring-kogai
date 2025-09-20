@@ -1,23 +1,14 @@
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:data.sql
-      schema-locations: []
-  jpa:
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        generate_statistics: true
-
-  liquibase:
-    enabled: true
-    change-log: classpath:/db/changelog/db.changelog-master.xml
+  data:
+    mongodb:
+      database: testdb
   shell:
     interactive:
       enabled: false
     script:
       enabled: false
+
+de.flapdoodle.mongodb.embedded.version: 7.0.4
+mongock:
+  migration-scan-package:
+    - ru.otus.hw.migrations
