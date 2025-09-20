@@ -62,6 +62,6 @@ public class CommentServiceImpl implements CommentService {
     }
 
     private void attachBook(Comment comment) {
-        bookRepository.findById(comment.getId()).ifPresent(comment::setBook);
+        bookRepository.findById(comment.getBookId()).ifPresent(comment::setBook);
     }
 }
