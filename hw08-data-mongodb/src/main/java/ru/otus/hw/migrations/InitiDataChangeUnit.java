@@ -4,6 +4,7 @@ import io.mongock.api.annotations.ChangeUnit;
 import io.mongock.api.annotations.Execution;
 import io.mongock.api.annotations.RollbackExecution;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
@@ -13,8 +14,9 @@ import ru.otus.hw.repositories.GenreRepository;
 
 import java.util.List;
 
+@Profile("dev")
 @RequiredArgsConstructor
-@ChangeUnit(id = "init-data", order = "001", author = "Viktor Kogai")
+@ChangeUnit(id = "dev-init-data", order = "000", author = "Viktor Kogai")
 public class InitiDataChangeUnit {
 
     private final AuthorRepository authorRepository;
