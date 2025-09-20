@@ -4,6 +4,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
+import ru.otus.hw.MongoIntegrationTest;
+import ru.otus.hw.TestDataConfig;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 
 import java.util.Set;
@@ -13,7 +16,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 @SpringBootTest
-class BookServiceTest {
+@Import(TestDataConfig.class)
+class BookServiceTest extends MongoIntegrationTest {
 
     @Autowired
     private BookService bookService;
