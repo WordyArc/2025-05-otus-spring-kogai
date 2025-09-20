@@ -16,36 +16,38 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("create & findById returns comment with accessible book outside tx")
+    @DisplayName("create & findById returns comment with attached book")
     void createAndRead() {
-        var created = commentService.create(1L, "Great!");
+        var created = commentService.create("b1", "Great!");
         var loaded = commentService.findById(created.getId()).orElseThrow();
         assertThat(loaded.getText()).isEqualTo("Great!");
+        assertThat(loaded.getBook()).isNotNull();
         assertThat(loaded.getBook().getTitle()).isEqualTo("BookTitle_1");
     }
 
     @Test
-    @DisplayName("findAllByBookId returns only related comments")
+    @DisplayName("findAllByBookId returns only related comments with book")
     void findAllByBookId() {
-        var c = commentService.create(1L, "c1");
-        var list = commentService.findAllByBookId(1L);
-        assertThat(list).extracting(x -> x.getBook().getId()).contains(1L);
+        commentService.create("b1", "c1");
+        var list = commentService.findAllByBookId("b1");
+        assertThat(list).allMatch(c -> "b1".equals(c.getBookId()));
+        assertThat(list).allSatisfy(c -> assertThat(c.getBook()).isNotNull());
     }
 
     @Test
     @DisplayName("create should throw when book is missing")
     void createMissingBook() {
-        assertThatThrownBy(() -> commentService.create(9999L, "text"))
+        assertThatThrownBy(() -> commentService.create("bad", "text"))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Book with id 9999");
+                .hasMessageContaining("Book with id bad");
     }
 
     @Test
     @DisplayName("update should throw when comment is missing")
     void updateMissingComment() {
-        assertThatThrownBy(() -> commentService.update(8888L, "edited"))
+        assertThatThrownBy(() -> commentService.update("missing", "edited"))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Comment with id 8888");
+                .hasMessageContaining("Comment with id missing");
     }
 
 }
