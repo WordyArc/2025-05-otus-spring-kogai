@@ -31,7 +31,7 @@ class GenreRepositoryTest {
     @DisplayName("findAllByIds")
     class FindAllByIds {
         @Test
-        @DisplayName("should keep ascending order")
+        @DisplayName("should return exactly requested ids")
         void ordered() {
             var list = repository.findAllByIdIn(Set.of(5L, 2L));
             assertThat(list).extracting(Genre::getId)
