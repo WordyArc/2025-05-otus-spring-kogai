@@ -48,4 +48,11 @@ class CommentServiceTest {
                 .hasMessageContaining("Comment with id 8888");
     }
 
+    @Test
+    @DisplayName("create returns a comment with an loaded book (no LazyInitializationException)")
+    void createReturnsInitializedBook() {
+        var created = commentService.create(1L, "hi");
+        assertThat(created.getBook().getTitle()).isEqualTo("BookTitle_1");
+    }
+
 }
