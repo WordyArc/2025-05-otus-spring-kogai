@@ -39,6 +39,7 @@ public class CreateIndexes {
     }
 
     @RollbackExecution
-    public void rollback() { }
+    public void rollback() {
+    }
 
 }
