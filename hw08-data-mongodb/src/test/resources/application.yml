@@ -13,6 +13,6 @@ logging:
     org.mongodb.driver.cluster: error
 
 mongock:
-  enabled: false
+  enabled: true
   migration-scan-package:
     - ru.otus.hw.migrations
