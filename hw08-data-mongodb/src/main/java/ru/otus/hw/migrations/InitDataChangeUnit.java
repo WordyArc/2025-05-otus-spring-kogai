@@ -16,8 +16,8 @@ import java.util.List;
 
 @Profile("dev")
 @RequiredArgsConstructor
-@ChangeUnit(id = "dev-init-data", order = "000", author = "Viktor Kogai")
-public class InitiDataChangeUnit {
+@ChangeUnit(id = "dev-init-data", order = "900", author = "Viktor Kogai")
+public class InitDataChangeUnit {
 
     private final AuthorRepository authorRepository;
 
