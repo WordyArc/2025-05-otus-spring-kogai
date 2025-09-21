@@ -35,11 +35,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public Comment create(Long bookId, String text) {
-        if (!bookRepository.existsById(bookId)) {
-            throw new EntityNotFoundException("Book with id %d not found".formatted(bookId));
-        }
-        var bookRef = bookRepository.getReferenceById(bookId);
-        var comment = new Comment(null, text, bookRef, LocalDateTime.now());
+        var book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(bookId)));
+        var comment = new Comment(null, text, book, LocalDateTime.now());
         return commentRepository.save(comment);
     }
 
