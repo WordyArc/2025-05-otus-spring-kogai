@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body}, 'Authors')}">
+    <head><title>Authors</title></head>
+    <body>
+        <h1>Authors</h1>
+        <ul>
+            <li th:each="a : ${authors}">
+                <span th:text="${a.fullName}">Author</span>
+            </li>
+        </ul>
+    </body>
+</html>
