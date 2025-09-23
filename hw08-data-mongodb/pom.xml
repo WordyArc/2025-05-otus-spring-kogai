@@ -12,7 +12,6 @@
     <groupId>ru.otus.hw</groupId>
     <artifactId>hw08-data-mongodb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>spring-data-mongodb</name>
 
     <properties>
         <java.version>17</java.version>
@@ -62,6 +61,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>de.flapdoodle.embed</groupId>
+            <artifactId>de.flapdoodle.embed.mongo.spring3x</artifactId>
+            <version>4.21.0</version>
             <scope>test</scope>
         </dependency>
 
