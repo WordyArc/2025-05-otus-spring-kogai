@@ -30,6 +30,14 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findById(id);
     }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public Book getById(Long id) {
+        return bookRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(id)));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<Book> findAll() {
@@ -45,8 +53,7 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book update(Long id, String title, Long authorId, Set<Long> genresIds) {
-        bookRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(id)));
+        getById(id);
         return save(id, title, authorId, genresIds);
     }
 
@@ -58,7 +65,7 @@ public class BookServiceImpl implements BookService {
 
     private Book save(Long id, String title, Long authorId, Set<Long> genresIds) {
         if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
+            throw new IllegalArgumentException("Genres ids must not be empty");
         }
 
         var author = authorRepository.findById(authorId)
