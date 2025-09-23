@@ -12,3 +12,9 @@ insert into books_genres(book_id, genre_id)
 values (1, 1),   (1, 2),
        (2, 3),   (2, 4),
        (3, 5),   (3, 6);
+
+insert into comments(text, book_id, created_at)
+values
+  ('A classic!', 1, CURRENT_TIMESTAMP()),
+  ('Solid read', 1, CURRENT_TIMESTAMP()),
+  ('Not my cup of tea', 2, CURRENT_TIMESTAMP());
