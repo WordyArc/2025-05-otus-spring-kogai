@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body}, 'Genres')}">
+    <head><title>Genres</title></head>
+    <body>
+        <h1>Genres</h1>
+        <ul>
+            <li th:each="g : ${genres}">
+                <span th:text="${g.name}">Genre</span>
+            </li>
+        </ul>
+    </body>
+</html>
