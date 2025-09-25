@@ -1,13 +1,34 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(~{::body}, 'Genres')}">
-    <head><title>Genres</title></head>
-    <body>
-        <h1>Genres</h1>
-        <ul>
-            <li th:each="g : ${genres}">
-                <span th:text="${g.name}">Genre</span>
-            </li>
-        </ul>
-    </body>
+<head><title>Genres</title></head>
+<body>
+<h1>Genres</h1>
+<ul id="genresList">
+    <li>Loading…</li>
+</ul>
+
+<script>
+    (async function () {
+      const ul = document.getElementById('genresList');
+      try {
+        const res = await fetch('/api/v1/genres');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        ul.innerHTML = '';
+        if (!data.length) {
+          ul.innerHTML = '<li>No genres</li>';
+          return;
+        }
+        for (const g of data) {
+          const li = document.createElement('li');
+          li.textContent = g.name ?? '';
+          ul.appendChild(li);
+        }
+      } catch (e) {
+        ul.innerHTML = '<li>Failed to load</li>';
+      }
+    })();
+</script>
+</body>
 </html>

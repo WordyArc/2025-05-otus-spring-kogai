@@ -1,13 +1,34 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(~{::body}, 'Authors')}">
-    <head><title>Authors</title></head>
-    <body>
-        <h1>Authors</h1>
-        <ul>
-            <li th:each="a : ${authors}">
-                <span th:text="${a.fullName}">Author</span>
-            </li>
-        </ul>
-    </body>
+<head><title>Authors</title></head>
+<body>
+<h1>Authors</h1>
+<ul id="authorsList">
+    <li>Loading…</li>
+</ul>
+
+<script>
+    (async function () {
+      const ul = document.getElementById('authorsList');
+      try {
+        const res = await fetch('/api/v1/authors');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        ul.innerHTML = '';
+        if (!data.length) {
+          ul.innerHTML = '<li>No authors</li>';
+          return;
+        }
+        for (const a of data) {
+          const li = document.createElement('li');
+          li.textContent = a.fullName ?? '';
+          ul.appendChild(li);
+        }
+      } catch (e) {
+        ul.innerHTML = '<li>Failed to load</li>';
+      }
+    })();
+</script>
+</body>
 </html>
