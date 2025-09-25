@@ -1,61 +1,68 @@
-;(async function loadBooks() {
+;(function () {
     const tbody = document.getElementById('booksTableBody');
-    tbody.innerHTML = '';
-    const res = await fetch('/api/v1/books');
-    if (!res.ok) {
-        tbody.innerHTML = '<tr><td colspan="5">Failed to load</td></tr>';
-        return;
-    }
-    const data = await res.json();
-
-    for (const b of data) {
-        const tr = document.createElement('tr');
-
-        const tdId = document.createElement('td');
-        tdId.textContent = b.id;
-
-        const tdTitle = document.createElement('td');
-        const a = document.createElement('a');
-        a.href = `/books/${b.id}`;
-        a.textContent = b.title ?? '';
-        tdTitle.appendChild(a);
-
-        const tdAuthor = document.createElement('td');
-        tdAuthor.textContent = (b.author?.fullName) ?? '';
-
-        const tdGenres = document.createElement('td');
-        tdGenres.textContent = (b.genres ?? []).map(g => g.name).join(', ');
-
-        const tdActions = document.createElement('td');
-        tdActions.className = 'actions';
-        const edit = document.createElement('a');
-        edit.className = 'btn';
-        edit.href = `/books/${b.id}/edit`;
-        edit.textContent = 'Edit';
-        const del = document.createElement('button');
-        del.className = 'btn danger';
-        del.type = 'button';
-        del.dataset.id = b.id;
-        del.textContent = 'Delete';
-        tdActions.append(edit, del);
-
-        tr.append(tdId, tdTitle, tdAuthor, tdGenres, tdActions);
-        tbody.appendChild(tr);
-    }
+    const rowTpl = document.getElementById('book-row-template');
+    const emptyTpl = document.getElementById('empty-row-template');
 
     tbody.addEventListener('click', async (e) => {
-        const btn = e.target.closest('button[data-id]');
+        const btn = e.target.closest('.delete-btn[data-id]');
         if (!btn) return;
+
         const id = btn.dataset.id;
         openConfirm(`/books/${id}/delete`);
+
         document.getElementById('confirmDeleteForm')
             .addEventListener('submit', async function onSubmit(ev) {
                 ev.preventDefault();
                 closeConfirm();
-                const del = await fetch(`/api/v1/books/${id}`, { method: 'DELETE' });
-                if (del.status === 204) {
+                const resp = await fetch(`/api/v1/books/${id}`, { method: 'DELETE' });
+                if (resp.status === 204) {
                     await loadBooks();
                 }
             }, { once: true });
     });
-})()
+
+    async function loadBooks() {
+        tbody.replaceChildren();
+
+        const res = await fetch('/api/v1/books');
+        if (!res.ok) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.textContent = 'Failed to load';
+            tr.appendChild(td);
+            tbody.appendChild(tr);
+            return;
+        }
+
+        const books = await res.json();
+        if (!books.length) {
+            tbody.appendChild(emptyTpl.content.cloneNode(true));
+            return;
+        }
+
+        const frag = document.createDocumentFragment();
+
+        for (const b of books) {
+            const row = rowTpl.content.cloneNode(true);
+
+            row.querySelector('.cell-id').textContent = b.id;
+            row.querySelector('.link-title').textContent = b.title ?? '';
+            row.querySelector('.link-title').href = `/books/${b.id}`;
+            row.querySelector('.cell-author').textContent = (b.author?.fullName) ?? '';
+            row.querySelector('.cell-genres').textContent = (b.genres ?? []).map(g => g.name).join(', ');
+
+            const edit = row.querySelector('.edit-link');
+            edit.href = `/books/${b.id}/edit`;
+
+            const del = row.querySelector('.delete-btn');
+            del.dataset.id = String(b.id);
+
+            frag.appendChild(row);
+        }
+
+        tbody.appendChild(frag);
+    }
+
+    loadBooks();
+})();

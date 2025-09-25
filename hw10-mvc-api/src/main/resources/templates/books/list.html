@@ -7,6 +7,7 @@
     <h2 style="margin-right:auto;">Books</h2>
     <a class="btn primary" href="/books/new">New book</a>
 </div>
+
 <table class="table">
     <thead>
     <tr>
@@ -19,6 +20,28 @@
     </thead>
     <tbody id="booksTableBody"></tbody>
 </table>
+
+<template id="book-row-template">
+    <tr>
+        <td class="cell-id"></td>
+        <td class="cell-title">
+            <a class="link-title" href="#"></a>
+        </td>
+        <td class="cell-author"></td>
+        <td class="cell-genres"></td>
+        <td class="actions">
+            <a class="btn edit-link" href="#">Edit</a>
+            <button class="btn danger delete-btn" type="button" data-id="">Delete</button>
+        </td>
+    </tr>
+</template>
+
+<template id="empty-row-template">
+    <tr>
+        <td colspan="5">No books</td>
+    </tr>
+</template>
+
 <script src="/js/books-list.js"></script>
 </body>
 </html>
