@@ -7,7 +7,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 
 public record BookFormDto(
-        Long id,
 
         @NotBlank(message = "Title must not be blank")
         String title,
