@@ -1,28 +1,22 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/layout :: layout(~{::body}, 'Book')}">
-    <head><title>Book</title></head>
-    <body>
-        <h1 th:text="${book.title}">Book</h1>
-        <p><b>Author:</b> <span th:text="${book.author.fullName}">Author</span></p>
-        <p><b>Genres:</b> <span th:text="${book.joinGenres()}">g1, g2</span></p>
+<head><title>Book</title></head>
+<body>
+<h1 id="bookTitle">Book</h1>
+<p><b>Author:</b> <span id="bookAuthor">-</span></p>
+<p><b>Genres:</b> <span id="bookGenres">-</span></p>
 
-        <div class="actions" style="margin: 12px 0;">
-            <a class="btn" th:href="@{/books/{id}/edit(id=${book.id})}">Edit</a>
-            <button class="btn danger" type="button"
-                    th:onclick="|openConfirm('@{/books/{id}/delete(id=${book.id})}')|">
-                Delete
-            </button>
-            <a class="btn" th:href="@{/books}">Back</a>
-        </div>
+<div class="actions" style="margin: 12px 0;">
+    <a class="btn" id="editLink" href="#">Edit</a>
+    <button class="btn danger" type="button" id="btnDelete">Delete</button>
+    <a class="btn" href="/books">Back</a>
+</div>
 
-        <h2>Comments</h2>
-        <div th:if="${#lists.isEmpty(comments)}">No comments</div>
-        <ul th:if="${!#lists.isEmpty(comments)}">
-            <li th:each="c : ${comments}">
-                <div><span th:text="${c.text}">text</span></div>
-                <small th:text="${c.createdAt}">-</small>
-            </li>
-        </ul>
-    </body>
+<h2>Comments</h2>
+<div id="commentsEmpty">No comments</div>
+<ul id="commentsList" style="display:none;"></ul>
+
+<script src="/js/book-view.js"></script>
+</body>
 </html>
