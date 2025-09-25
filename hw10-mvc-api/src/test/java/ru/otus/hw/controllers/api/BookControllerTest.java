@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -127,6 +128,7 @@ class BookControllerTest {
     void deleteOk() throws Exception {
         mvc.perform(delete("/api/v1/books/1"))
                 .andExpect(status().isNoContent());
+        verify(bookService).deleteById(1L);
     }
 
     @Test
