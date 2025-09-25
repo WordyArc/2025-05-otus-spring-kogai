@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 public class ApiExceptionHandler {
 
     @ExceptionHandler({EntityNotFoundException.class, NoSuchElementException.class})
-    public ProblemDetail notFound() {
+    public ProblemDetail notFound(Exception ex) {
         var problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         problemDetail.setTitle("Not Found");
-        problemDetail.setDetail("Resource not found");
+        problemDetail.setDetail(ex.getMessage() != null ? ex.getMessage() : "Resource not found");
         return problemDetail;
     }
 
