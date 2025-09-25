@@ -1,3 +1,6 @@
+server:
+  forward-headers-strategy: framework
+
 spring:
   h2:
     console:
