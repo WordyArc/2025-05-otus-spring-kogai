@@ -1,0 +1,19 @@
+spring:
+  profiles:
+    active: dev
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/library
+  shell:
+    interactive:
+      enabled: true
+
+logging:
+  level:
+    io.mongock: debug
+
+mongock:
+  enabled: true
+  runner-type: initializingbean
+  migration-scan-package:
+    - ru.otus.hw.migrations
