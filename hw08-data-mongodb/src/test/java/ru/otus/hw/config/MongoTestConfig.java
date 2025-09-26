@@ -1,4 +1,4 @@
-package ru.otus.hw;
+package ru.otus.hw.config;
 
 import de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration;
 import org.springframework.beans.factory.annotation.Value;
