@@ -27,7 +27,7 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("findAll returns books with accessible relations")
+    @DisplayName("findAll returns books with relations")
     void findAll() {
         var books = bookService.findAll();
         assertThat(books).hasSize(3);
