@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import ru.otus.hw.MongoIntegrationTest;
+import ru.otus.hw.CommonContext;
 import ru.otus.hw.models.Author;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
-class AuthorRepositoryTest extends MongoIntegrationTest {
+class AuthorRepositoryTest extends CommonContext {
 
     @Autowired
     private AuthorRepository repository;

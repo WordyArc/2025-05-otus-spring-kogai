@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import ru.otus.hw.MongoIntegrationTest;
+import ru.otus.hw.CommonContext;
 import ru.otus.hw.models.Genre;
 
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
-class GenreRepositoryTest extends MongoIntegrationTest {
+class GenreRepositoryTest extends CommonContext {
 
     @Autowired
     private GenreRepository repository;
