@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.springframework.util.CollectionUtils.isEmpty;
-
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
@@ -29,7 +27,6 @@ public class BookServiceImpl implements BookService {
     public Optional<Book> findById(Long id) {
         return bookRepository.findById(id);
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -53,7 +50,9 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book update(Long id, String title, Long authorId, Set<Long> genresIds) {
-        getById(id);
+        if (!bookRepository.existsById(id)) {
+            throw new EntityNotFoundException("Book with id %d not found".formatted(id));
+        }
         return save(id, title, authorId, genresIds);
     }
 
@@ -64,14 +63,14 @@ public class BookServiceImpl implements BookService {
     }
 
     private Book save(Long id, String title, Long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be empty");
+        if (genresIds == null || genresIds.isEmpty()) {
+            throw new IllegalArgumentException("Genres ids must not be null or empty");
         }
 
         var author = authorRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = genreRepository.findAllByIds(genresIds);
-        if (isEmpty(genres) || genresIds.size() != genres.size()) {
+        var genres = genreRepository.findAllByIdIn(genresIds);
+        if (genres.size() != genresIds.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
 

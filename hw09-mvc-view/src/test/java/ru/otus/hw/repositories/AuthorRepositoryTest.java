@@ -5,25 +5,24 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import ru.otus.hw.models.Author;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import(JpaAuthorRepository.class)
-class JpaAuthorRepositoryTest {
+class AuthorRepositoryTest {
 
     @Autowired
-    private JpaAuthorRepository repository;
+    private AuthorRepository repository;
 
     @Test
     @DisplayName("should load all authors")
     void findAll() {
         var list = repository.findAll();
-        assertThat(list).extracting(Author::getId).containsExactly(1L, 2L, 3L);
+        assertThat(list).extracting(Author::getId)
+                .containsExactlyInAnyOrder(1L, 2L, 3L);
         assertThat(list).extracting(Author::getFullName)
-                .containsExactly("Author_1", "Author_2", "Author_3");
+                .containsExactlyInAnyOrder("Author_1", "Author_2", "Author_3");
     }
 
 

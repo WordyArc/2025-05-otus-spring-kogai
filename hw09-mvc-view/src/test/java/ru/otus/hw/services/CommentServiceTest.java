@@ -16,7 +16,7 @@ class CommentServiceTest {
     private CommentService commentService;
 
     @Test
-    @DisplayName("create & findById returns comment with accessible book")
+    @DisplayName("create & findById returns comment with attached book")
     void createAndRead() {
         var created = commentService.create(1L, "Great!");
         var loaded = commentService.findById(created.getId()).orElseThrow();
@@ -46,6 +46,13 @@ class CommentServiceTest {
         assertThatThrownBy(() -> commentService.update(8888L, "edited"))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Comment with id 8888");
+    }
+
+    @Test
+    @DisplayName("create returns a comment with an loaded book (no LazyInitializationException)")
+    void createReturnsInitializedBook() {
+        var created = commentService.create(1L, "hi");
+        assertThat(created.getBook().getTitle()).isEqualTo("BookTitle_1");
     }
 
 }
