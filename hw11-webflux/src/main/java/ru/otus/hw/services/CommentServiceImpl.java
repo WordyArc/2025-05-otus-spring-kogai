@@ -3,6 +3,8 @@ package ru.otus.hw.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
@@ -22,37 +24,39 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Comment> findById(Long id) {
+    public Mono<Comment> findById(Long id) {
         return commentRepository.findById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Comment> findAllByBookId(Long bookId) {
+    public Flux<Comment> findAllByBookId(Long bookId) {
         return commentRepository.findAllByBookId(bookId);
     }
 
     @Override
     @Transactional
-    public Comment create(Long bookId, String text) {
-        var book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(bookId)));
-        var comment = new Comment(null, text, book, LocalDateTime.now());
-        return commentRepository.save(comment);
+    public Mono<Comment> create(Long bookId, String text) {
+        return bookRepository.existsById(bookId)
+                .flatMap(exists -> exists
+                        ? commentRepository.save(new Comment(null, text, bookId, LocalDateTime.now()))
+                        : Mono.error(new EntityNotFoundException("Book with id %d not found".formatted(bookId))));
     }
 
     @Override
     @Transactional
-    public Comment update(Long id, String newText) {
-        var comment = commentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Comment with id %d not found".formatted(id)));
-        comment.setText(newText);
-        return commentRepository.save(comment);
+    public Mono<Comment> update(Long id, String newText) {
+        return commentRepository.findById(id)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Comment with id %d not found".formatted(id))))
+                .flatMap(c -> {
+                    c.setText(newText);
+                    return commentRepository.save(c);
+                });
     }
 
     @Override
     @Transactional
-    public void deleteById(Long id) {
-        commentRepository.deleteById(id);
+    public Mono<Void> deleteById(Long id) {
+        return commentRepository.deleteById(id);
     }
 }
