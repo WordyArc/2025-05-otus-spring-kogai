@@ -3,48 +3,50 @@ package ru.otus.hw.controllers.view;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.http.MediaType.TEXT_HTML;
 
-@WebMvcTest(controllers = BookViewController.class)
+@WebFluxTest(controllers = BookViewController.class)
 class BookViewControllerTest {
 
     @Autowired
-    private MockMvc mvc;
+    WebTestClient client;
 
     @Test
-    @DisplayName("GET /books -> books/list")
-    void list() throws Exception {
-        mvc.perform(get("/books"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("books/list"));
+    @DisplayName("GET /books -> 200 text/html")
+    void list() {
+        client.get().uri("/books")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(TEXT_HTML);
     }
 
     @Test
-    @DisplayName("GET /books/new -> books/form")
-    void newForm() throws Exception {
-        mvc.perform(get("/books/new"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("books/form"));
+    @DisplayName("GET /books/new -> 200 text/html")
+    void newForm() {
+        client.get().uri("/books/new")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(TEXT_HTML);
     }
 
     @Test
-    @DisplayName("GET /books/{id} -> books/view")
-    void viewPage() throws Exception {
-        mvc.perform(get("/books/1"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("books/view"));
+    @DisplayName("GET /books/{id} -> 200 text/html")
+    void viewPage() {
+        client.get().uri("/books/1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(TEXT_HTML);
     }
 
     @Test
-    @DisplayName("GET /books/{id}/edit -> books/form")
-    void editForm() throws Exception {
-        mvc.perform(get("/books/1/edit"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("books/form"));
+    @DisplayName("GET /books/{id}/edit -> 200 text/html")
+    void editForm() {
+        client.get().uri("/books/1/edit")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentTypeCompatibleWith(TEXT_HTML);
     }
 }
