@@ -1,8 +1,11 @@
 package ru.otus.hw.repositories;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -11,49 +14,52 @@ import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.List;
-
+import java.util.function.BiFunction;
 
 @Repository
 @RequiredArgsConstructor
-public class BookRepositoryCustomImpl implements BookAggregateRepository {
+public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
     private final R2dbcEntityOperations ops;
 
-    private static final String BASE_JOIN = """
+    private final ObjectMapper objectMapper;
+
+    private static final String BASE_JSON = """
             select
-                b.id        as b_id,
-                b.title     as b_title,
-                a.id        as a_id,
-                a.full_name as a_name,
-                g.id        as g_id,
-                g.name      as g_name
+              b.id as id,
+              b.title as title,
+              json_object(
+                  key 'id' value a.id,
+                  key 'fullName' value a.full_name
+              ) as author,
+              json_array(
+                select json_object(key 'id' value g.id, key 'name' value g.name)
+                from books_genres bg
+                join genres g on g.id = bg.genre_id
+                where bg.book_id = b.id
+                order by g.id
+              ) as genres
             from books b
             join authors a on a.id = b.author_id
-            left join books_genres bg on bg.book_id = b.id
-            left join genres g on g.id = bg.genre_id
+            
             """;
 
     @Override
     public Flux<Book> findAllAggregates() {
-        return ops.getDatabaseClient()
-                .sql(BASE_JOIN + " order by b.id, g.id")
-                .map(this::mapJoin).all()
-                .bufferUntilChanged(BookJoin::bookId)
-                .map(this::collapse);
+        return ops.getDatabaseClient().sql(BASE_JSON + "order by b.id")
+                .map(bookAggregateMapper)
+                .all();
     }
 
     @Override
     public Mono<Book> findAggregateById(Long id) {
         return ops.getDatabaseClient()
-                .sql(BASE_JOIN + " where b.id = :id order by g.id")
+                .sql(BASE_JSON + "where b.id = :id")
                 .bind("id", id)
-                .map(this::mapJoin).all()
-                .collectList()
-                .filter(list -> !list.isEmpty())
-                .map(this::collapse);
+                .map(bookAggregateMapper)
+                .one();
     }
 
     @Override
@@ -73,43 +79,26 @@ public class BookRepositoryCustomImpl implements BookAggregateRepository {
         return delete.thenMany(batchInsert).then();
     }
 
-    private Book collapse(List<BookJoin> rows) {
-        var head = rows.get(0);
+    private final BiFunction<Row, RowMetadata, Book> bookAggregateMapper = (row, md) -> mapRow(
+            row.get("id", Long.class),
+            row.get("title", String.class),
+            row.get("author", String.class),
+            row.get("genres", String.class)
+    );
 
-        var book = new Book();
-        book.setId(head.bookId());
-        book.setTitle(head.bookTitle());
-        book.setAuthorId(head.authorId());
-        book.setAuthor(new Author(head.authorId(), head.authorName()));
+    private Book mapRow(Long id, String title, String authorJson, String genresJson) {
+        try {
+            var author = objectMapper.readValue(authorJson, Author.class);
 
-        final var genres = new LinkedHashMap<Long, Genre>();
-        for (var r : rows) {
-            var gid = r.genreId();
-            if (gid == null) continue;
-            genres.computeIfAbsent(gid, id -> new Genre(id, r.genreName()));
+            List<Genre> genres = (genresJson == null || genresJson.isBlank())
+                    ? Collections.emptyList()
+                    : objectMapper.readValue(genresJson, new TypeReference<>() {
+            });
+
+            return new Book(id, title, author.getId(), author, genres);
+        } catch (Exception e) {
+            throw new DataRetrievalFailureException("Failed to parse aggregated JSON for book id=" + id, e);
         }
-        book.setGenres(new ArrayList<>(genres.values()));
-
-        return book;
     }
 
-    private BookJoin mapJoin(Row row, RowMetadata md) {
-        return new BookJoin(
-                toLong(row.get("b_id")), (String) row.get("b_title"),
-                toLong(row.get("a_id")), (String) row.get("a_name"),
-                toLong(row.get("g_id")), (String) row.get("g_name")
-        );
-    }
-
-
-    private record BookJoin(
-            Long bookId, String bookTitle,
-            Long authorId, String authorName,
-            Long genreId, String genreName
-    ) {
-    }
-
-    private static Long toLong(Object o) {
-        return (o == null) ? null : ((Number) o).longValue();
-    }
 }

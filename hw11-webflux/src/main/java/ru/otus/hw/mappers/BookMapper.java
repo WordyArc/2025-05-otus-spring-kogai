@@ -17,12 +17,4 @@ public class BookMapper {
         return new BookDto(b.getId(), b.getTitle(), authorDto, genres);
     }
 
-//    public BookDto toDto(Book b) {
-//        Author a = b.getAuthor();
-//        AuthorDto authorDto = a == null ? null : new AuthorDto(a.getId(), a.getFullName());
-//        List<GenreDto> genres = b.getGenres() == null ? List.of()
-//                : b.getGenres().stream().map(g -> new GenreDto(g.getId(), g.getName())).toList();
-//        return new BookDto(b.getId(), b.getTitle(), authorDto, genres);
-//    }
-
 }

@@ -6,5 +6,6 @@ import ru.otus.hw.models.Book;
 
 
 @Repository
-public interface BookRepository extends ReactiveCrudRepository<Book, Long>, BookAggregateRepository {
+public interface BookRepository extends ReactiveCrudRepository<Book, Long>, BookRepositoryCustom {
+
 }
