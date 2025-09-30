@@ -1,17 +1,30 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-  r2dbc:
-    url: r2dbc:h2:mem:///testdb
     username: sa
-    password:
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:data.sql
-      schema-locations: []
+    password: ""
+
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb?options=DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    pool:
+      enabled: true
 
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+
+  sql:
+    init:
+      mode: never
+      data-locations: classpath:/data.sql
+      schema-locations: []
+
+logging:
+  level:
+    io.r2dbc.h2.H2Connection: error
