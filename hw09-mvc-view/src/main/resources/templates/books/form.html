@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body}, ${form.id} != null ? 'Edit book' : 'Create book')}">
+    <head><title>Book form</title></head>
+    <body>
+        <h1 th:text="${form.id} != null ? 'Edit book' : 'Create book'">Form</h1>
+
+        <form th:action="${form.id} != null ? @{/books/{id}(id=${form.id})} : @{/books}"
+              th:object="${form}" method="post">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="form-row">
+                <label for="title">Title</label>
+                <input id="title" class="input" type="text" th:field="*{title}"/>
+                <div class="error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">err</div>
+            </div>
+
+            <div class="form-row">
+                <label for="authorId">Author</label>
+                <select id="authorId" class="input" th:field="*{authorId}">
+                    <option value="" disabled>— select —</option>
+                    <option th:each="a : ${authors}" th:value="${a.id}" th:text="${a.fullName}"></option>
+                </select>
+                <div class="error" th:if="${#fields.hasErrors('authorId')}" th:errors="*{authorId}">err</div>
+            </div>
+
+            <div class="form-row">
+                <label for="genreIds">Genres</label>
+                <select id="genreIds" class="input" multiple size="6" th:field="*{genreIds}">
+                    <option th:each="g : ${genres}" th:value="${g.id}" th:text="${g.name}"></option>
+                </select>
+                <div class="error" th:if="${#fields.hasErrors('genreIds')}" th:errors="*{genreIds}">err</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn primary" type="submit">Save</button>
+                <a class="btn" th:href="@{/books}">Cancel</a>
+            </div>
+        </form>
+    </body>
+</html>
