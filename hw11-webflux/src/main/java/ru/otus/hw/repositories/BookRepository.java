@@ -7,7 +7,7 @@ import ru.otus.hw.models.Book;
 
 
 @Repository
-public interface BookRepository extends ReactiveCrudRepository<Book, Long>, BookRepositoryCustom {
+public interface BookRepository extends ReactiveCrudRepository<Book, Long>, BookAggregateRepository {
     @Override
     Mono<Boolean> existsById(Long id);
 }
