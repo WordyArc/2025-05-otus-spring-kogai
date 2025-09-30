@@ -41,56 +41,54 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Mono<Book> insert(String title, Long authorId, Set<Long> genresIds) {
-        if (genresIds == null || genresIds.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("Genres ids must not be null or empty"));
-        }
-
-        Mono<Void> checkAuthor = authorRepository.existsById(authorId)
-                .flatMap(exists -> exists
-                        ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("Author with id %d not found".formatted(authorId))));
-
-        Mono<Void> checkGenres = genreRepository.findAllById(genresIds)
-                .count()
-                .flatMap(cnt -> cnt == genresIds.size()
-                        ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds))));
-
-        return Mono.when(checkAuthor, checkGenres)
-                .then(bookRepository.save(new Book(null, title, authorId, null, null)))
-                .flatMap(saved -> bookRepository.replaceGenres(saved.getId(), genresIds).thenReturn(saved))
-                .flatMap(saved -> getById(saved.getId()));
+        return validateForUpsert(authorId, genresIds)
+                .then(saveAndReload(null, title, authorId, genresIds));
     }
 
     @Override
     @Transactional
     public Mono<Book> update(Long id, String title, Long authorId, Set<Long> genresIds) {
-        if (genresIds == null || genresIds.isEmpty()) {
-            return Mono.error(new IllegalArgumentException("Genres ids must not be null or empty"));
-        }
-
-        Mono<Void> ensureBook = bookRepository.existsById(id)
-                .flatMap(exists -> exists ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("Book with id %d not found".formatted(id))));
-
-        Mono<Void> ensureAuthor = authorRepository.existsById(authorId)
-                .flatMap(exists -> exists ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("Author with id %d not found".formatted(authorId))));
-
-        Mono<Void> ensureGenres = genreRepository.findAllById(genresIds)
-                .count()
-                .flatMap(cnt -> cnt == genresIds.size() ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds))));
-
-        return Mono.when(ensureBook, ensureAuthor, ensureGenres)
-                .then(bookRepository.save(new Book(id, title, authorId, null, null)))
-                .flatMap(saved -> bookRepository.replaceGenres(saved.getId(), genresIds).thenReturn(saved))
-                .flatMap(saved -> getById(saved.getId()));
+        return Mono.when(
+                ensureBookExists(id),
+                validateForUpsert(authorId, genresIds)
+        ).then(saveAndReload(id, title, authorId, genresIds));
     }
 
     @Override
     @Transactional
     public Mono<Void> deleteById(Long id) {
         return bookRepository.deleteById(id);
+    }
+
+    private Mono<Void> validateForUpsert(Long authorId, Set<Long> genresIds) {
+        if (genresIds == null || genresIds.isEmpty()) {
+            return Mono.error(new IllegalArgumentException("Genres ids must not be null or empty"));
+        }
+
+        Mono<Void> ensureAuthor = authorRepository.existsById(authorId)
+                .flatMap(exists -> exists
+                        ? Mono.empty()
+                        : Mono.error(new EntityNotFoundException("Author with id %d not found".formatted(authorId))));
+
+        Mono<Void> ensureGenres = genreRepository.findAllById(genresIds)
+                .count()
+                .flatMap(cnt -> cnt == genresIds.size()
+                        ? Mono.empty()
+                        : Mono.error(new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds))));
+
+        return Mono.when(ensureAuthor, ensureGenres);
+    }
+
+    private Mono<Void> ensureBookExists(Long id) {
+        return bookRepository.existsById(id)
+                .flatMap(exists -> exists
+                        ? Mono.empty()
+                        : Mono.error(new EntityNotFoundException("Book with id %d not found".formatted(id))));
+    }
+
+    private Mono<Book> saveAndReload(Long id, String title, Long authorId, Set<Long> genresIds) {
+        return bookRepository.save(new Book(id, title, authorId, null, null))
+                .flatMap(saved -> bookRepository.replaceGenres(saved.getId(), genresIds).thenReturn(saved))
+                .flatMap(saved -> getById(saved.getId()));
     }
 }
