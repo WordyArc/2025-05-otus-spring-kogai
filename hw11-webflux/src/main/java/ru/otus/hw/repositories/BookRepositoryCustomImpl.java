@@ -14,14 +14,11 @@ import ru.otus.hw.models.Genre;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 @Repository
 @RequiredArgsConstructor
-public class BookRepositoryCustomImpl implements BookRepositoryCustom {
+public class BookRepositoryCustomImpl implements BookAggregateRepository {
 
     private final R2dbcEntityOperations ops;
 
@@ -85,19 +82,14 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
         book.setAuthorId(head.authorId());
         book.setAuthor(new Author(head.authorId(), head.authorName()));
 
-        var genres = rows.stream()
-                .filter(r -> r.genreId() != null)
-                .map(r -> new Genre(r.genreId(), r.genreName()))
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toMap(
-                                Genre::getId,
-                                Function.identity(),
-                                (a, b) -> a,
-                                LinkedHashMap::new),
-                        map -> new ArrayList<>(map.values())
-                ));
+        final var genres = new LinkedHashMap<Long, Genre>();
+        for (var r : rows) {
+            var gid = r.genreId();
+            if (gid == null) continue;
+            genres.computeIfAbsent(gid, id -> new Genre(id, r.genreName()));
+        }
+        book.setGenres(new ArrayList<>(genres.values()));
 
-        book.setGenres(genres);
         return book;
     }
 
