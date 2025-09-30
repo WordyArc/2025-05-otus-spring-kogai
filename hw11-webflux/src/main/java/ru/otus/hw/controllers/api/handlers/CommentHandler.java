@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 import ru.otus.hw.dto.CommentDto;
 import ru.otus.hw.mappers.CommentMapper;
 import ru.otus.hw.services.CommentService;
+import ru.otus.hw.util.RequestUtils;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromPublisher;
 
@@ -18,7 +19,7 @@ public class CommentHandler {
     private final CommentService commentService;
 
     public Mono<ServerResponse> listByBook(ServerRequest request) {
-        long bookId = Long.parseLong(request.pathVariable("id"));
+        long bookId = RequestUtils.pathLong(request, "id");
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromPublisher(

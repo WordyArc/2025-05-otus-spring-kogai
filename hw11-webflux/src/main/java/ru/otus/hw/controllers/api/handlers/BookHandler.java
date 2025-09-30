@@ -13,6 +13,7 @@ import ru.otus.hw.dto.BookFormDto;
 import ru.otus.hw.mappers.BookMapper;
 import ru.otus.hw.services.BookService;
 import ru.otus.hw.util.PatchUtils;
+import ru.otus.hw.util.RequestUtils;
 
 import java.net.URI;
 import java.util.Map;
@@ -93,15 +94,7 @@ public class BookHandler {
     }
 
     private Mono<ServerResponse> withId(ServerRequest req, LongFunction<Mono<ServerResponse>> action) {
-        return defer(() -> action.apply(parseId(req)));
-    }
-
-    private long parseId(ServerRequest req) {
-        try {
-            return Long.parseLong(req.pathVariable("id"));
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Invalid parameter", ex);
-        }
+        return defer(() -> action.apply(RequestUtils.pathLong(req, "id")));
     }
 
     private Mono<BookFormDto> validate(BookFormDto dto) {

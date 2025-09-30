@@ -11,7 +11,7 @@ import java.util.UUID;
 public abstract class CommonContext {
 
     @DynamicPropertySource
-    static void overrideMongoProps(DynamicPropertyRegistry registry) {
+    static void overrideDbProps(DynamicPropertyRegistry registry) {
         var db = randomDbName();
 
         registry.add("spring.datasource.url", () -> jdbcUrl(db));
