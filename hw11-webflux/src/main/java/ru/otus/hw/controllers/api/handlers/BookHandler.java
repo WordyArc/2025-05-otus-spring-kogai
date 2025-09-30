@@ -16,7 +16,6 @@ import ru.otus.hw.util.PatchUtils;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.LongFunction;
 import java.util.function.Supplier;
 
@@ -30,12 +29,14 @@ import static org.springframework.web.reactive.function.server.ServerResponse.ok
 @RequiredArgsConstructor
 public class BookHandler {
 
-    private final BookService bookService;
-    private final Validator validator;
-
     private static final ParameterizedTypeReference<Map<String, Object>> MAP =
             new ParameterizedTypeReference<>() {
             };
+
+    private final BookService bookService;
+
+    private final Validator validator;
+
 
     public Mono<ServerResponse> list(ServerRequest req) {
         return ok().contentType(APPLICATION_JSON)
@@ -94,10 +95,6 @@ public class BookHandler {
     private Mono<ServerResponse> withId(ServerRequest req, LongFunction<Mono<ServerResponse>> action) {
         return defer(() -> action.apply(parseId(req)));
     }
-
-//    private Mono<ServerResponse> withId(ServerRequest req, Function<Long, Mono<ServerResponse>> action) {
-//        return Mono.fromCallable(() -> parseId(req)).flatMap(action);
-//    }
 
     private long parseId(ServerRequest req) {
         try {
