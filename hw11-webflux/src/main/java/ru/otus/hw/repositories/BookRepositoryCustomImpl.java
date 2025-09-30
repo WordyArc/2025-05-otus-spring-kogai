@@ -1,5 +1,7 @@
 package ru.otus.hw.repositories;
 
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.stereotype.Repository;
@@ -11,7 +13,9 @@ import ru.otus.hw.models.Genre;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -25,7 +29,7 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
             select
                 b.id        as b_id,
                 b.title     as b_title,
-                b.author_id as a_id,
+                a.id        as a_id,
                 a.full_name as a_name,
                 g.id        as g_id,
                 g.name      as g_name
@@ -35,72 +39,85 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
             left join genres g on g.id = bg.genre_id
             """;
 
+    @Override
     public Flux<Book> findAllAggregates() {
-        return ops.getDatabaseClient().sql(BASE_JOIN + " order by b.id")
-                .map((row, md) -> new Row(
-                        getL(row.get("b_id")), (String) row.get("b_title"),
-                        getL(row.get("a_id")), (String) row.get("a_name"),
-                        getL(row.get("g_id")), (String) row.get("g_name")
-                )).all()
-                .transform(this::rowsToBooks);
+        return ops.getDatabaseClient()
+                .sql(BASE_JOIN + " order by b.id, g.id")
+                .map(this::mapJoin).all()
+                .bufferUntilChanged(BookJoin::bookId)
+                .map(this::collapse);
     }
 
+    @Override
     public Mono<Book> findAggregateById(Long id) {
-        return ops.getDatabaseClient().sql(BASE_JOIN + " where b.id=:id")
+        return ops.getDatabaseClient()
+                .sql(BASE_JOIN + " where b.id = :id order by g.id")
                 .bind("id", id)
-                .map((row, md) -> new Row(
-                        getL(row.get("b_id")), (String) row.get("b_title"),
-                        getL(row.get("a_id")), (String) row.get("a_name"),
-                        getL(row.get("g_id")), (String) row.get("g_name")
-                )).all()
-                .transform(this::rowsToBooks)
-                .singleOrEmpty();
+                .map(this::mapJoin).all()
+                .collectList()
+                .filter(list -> !list.isEmpty())
+                .map(this::collapse);
     }
 
+    @Override
     public Mono<Void> replaceGenres(Long bookId, Iterable<Long> genreIds) {
-        var delete = ops.getDatabaseClient().sql("delete from books_genres where book_id=:bid")
-                .bind("bid", bookId).fetch().rowsUpdated();
-        var inserts = Flux.fromIterable(genreIds)
-                .concatMap(gid -> ops.getDatabaseClient()
-                        .sql("insert into books_genres(book_id, genre_id) values(:bid,:gid)")
-                        .bind("bid", bookId).bind("gid", gid)
+        var delete = ops.getDatabaseClient()
+                .sql("delete from books_genres where book_id = :bid")
+                .bind("bid", bookId)
+                .fetch().rowsUpdated();
+
+        var batchInsert = Flux.fromIterable(genreIds).concatMap(gid ->
+                ops.getDatabaseClient()
+                        .sql("insert into books_genres(book_id, genre_id) values(:bid, :gid)")
+                        .bind("bid", bookId)
+                        .bind("gid", gid)
                         .fetch().rowsUpdated());
-        return delete.thenMany(inserts).then();
+
+        return delete.thenMany(batchInsert).then();
     }
 
-    /* — helpers — */
+    private Book collapse(List<BookJoin> rows) {
+        var head = rows.get(0);
 
-    private Flux<Book> rowsToBooks(Flux<Row> rows) {
-        return rows.collectList().flatMapMany(list -> {
-            Map<Long, Book> acc = new LinkedHashMap<>();
-            for (var r : list) {
-                var b = acc.computeIfAbsent(r.bId, k -> {
-                    var book = new Book();
-                    book.setId(r.bId);
-                    book.setTitle(r.bTitle);
-                    book.setAuthorId(r.aId);
-                    book.setAuthor(new Author(r.aId, r.aName));
-                    book.setGenres(new ArrayList<>());
-                    return book;
-                });
-                if (r.gId != null) b.getGenres().add(new Genre(r.gId, r.gName));
-            }
-            return Flux.fromIterable(acc.values()).map(b -> {
-                if (!b.getGenres().isEmpty()) {
-                    b.setGenres(b.getGenres().stream()
-                            .collect(Collectors.collectingAndThen(
-                                    Collectors.toMap(Genre::getId, g -> g, (x, y) -> x, LinkedHashMap::new),
-                                    m -> new ArrayList<>(m.values()))));
-                }
-                return b;
-            });
-        });
+        var book = new Book();
+        book.setId(head.bookId());
+        book.setTitle(head.bookTitle());
+        book.setAuthorId(head.authorId());
+        book.setAuthor(new Author(head.authorId(), head.authorName()));
+
+        var genres = rows.stream()
+                .filter(r -> r.genreId() != null)
+                .map(r -> new Genre(r.genreId(), r.genreName()))
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toMap(
+                                Genre::getId,
+                                Function.identity(),
+                                (a, b) -> a,
+                                LinkedHashMap::new),
+                        map -> new ArrayList<>(map.values())
+                ));
+
+        book.setGenres(genres);
+        return book;
     }
 
-    private record Row(Long bId, String bTitle, Long aId, String aName, Long gId, String gName) {
+    private BookJoin mapJoin(Row row, RowMetadata md) {
+        return new BookJoin(
+                toLong(row.get("b_id")), (String) row.get("b_title"),
+                toLong(row.get("a_id")), (String) row.get("a_name"),
+                toLong(row.get("g_id")), (String) row.get("g_name")
+        );
     }
 
-    private static Long getL(Object o) {
-        return o == null ? null : ((Number) o).longValue();
+
+    private record BookJoin(
+            Long bookId, String bookTitle,
+            Long authorId, String authorName,
+            Long genreId, String genreName
+    ) {
+    }
+
+    private static Long toLong(Object o) {
+        return (o == null) ? null : ((Number) o).longValue();
     }
 }
