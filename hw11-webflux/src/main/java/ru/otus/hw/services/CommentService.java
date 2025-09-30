@@ -4,10 +4,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.otus.hw.models.Comment;
 
-import java.util.List;
-import java.util.Optional;
-
 public interface CommentService {
+
     Mono<Comment> findById(Long id);
 
     Flux<Comment> findAllByBookId(Long bookId);
