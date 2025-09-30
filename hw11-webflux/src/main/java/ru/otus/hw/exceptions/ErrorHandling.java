@@ -23,7 +23,6 @@ public class ErrorHandling {
         return (request, next) -> next.handle(request)
                 .onErrorResume(ex -> {
                     log.debug("Handling error", ex);
-
                     if (ex instanceof EntityNotFoundException enf) {
                         return error(HttpStatus.NOT_FOUND, "Not Found", enf.getMessage());
                     }
@@ -38,13 +37,9 @@ public class ErrorHandling {
                     }
                     if (ex instanceof ServerWebInputException swe) {
                         var cause = swe.getCause();
-                        var detail = (cause instanceof DecodingException)
-                                ? "Malformed JSON"
-                                : "Invalid parameter";
+                        var detail = (cause instanceof DecodingException) ? "Malformed JSON" : "Invalid parameter";
                         return error(HttpStatus.BAD_REQUEST, "Bad Request", detail);
                     }
-
-
                     return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error");
                 });
     }

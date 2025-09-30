@@ -72,7 +72,8 @@ public class BookServiceImpl implements BookService {
                 .count()
                 .flatMap(cnt -> cnt == genresIds.size()
                         ? Mono.empty()
-                        : Mono.error(new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds))));
+                        : Mono.error(new EntityNotFoundException("One or all genres with ids %s not found"
+                                .formatted(genresIds))));
 
         return Mono.when(ensureAuthor, ensureGenres);
     }
