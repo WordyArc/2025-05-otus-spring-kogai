@@ -30,9 +30,9 @@ public class R2dbcBookAggregateRepository implements BookAggregateRepository {
             select
               b.id  as id,
               b.title   as title,
-              json_object('id': a.id, 'fullName': a.full_name) as author,
+              json_object('id', a.id, 'fullName', a.full_name) as author,
               json_array(
-                select json_object('id': g.id, 'name': g.name)
+                select json_object('id', g.id, 'name', g.name)
                 from books_genres bg
                 join genres g on g.id = bg.genre_id
                 where bg.book_id = b.id
@@ -40,6 +40,7 @@ public class R2dbcBookAggregateRepository implements BookAggregateRepository {
               ) as genres
             from books b
             join authors a on a.id = b.author_id
+            
             """;
 
     @Override
@@ -52,7 +53,7 @@ public class R2dbcBookAggregateRepository implements BookAggregateRepository {
     @Override
     public Mono<Book> findAggregateById(Long id) {
         return ops.getDatabaseClient()
-                .sql(BASE_JSON + "where id = :id")
+                .sql(BASE_JSON + "where b.id = :id")
                 .bind("id", id)
                 .map(bookAggregateMapper)
                 .one();
