@@ -3,13 +3,13 @@ package ru.otus.hw.controllers.api;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.server.HandlerFilterFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import ru.otus.hw.controllers.api.handlers.AuthorHandler;
 import ru.otus.hw.controllers.api.handlers.BookHandler;
 import ru.otus.hw.controllers.api.handlers.CommentHandler;
 import ru.otus.hw.controllers.api.handlers.GenreHandler;
-import ru.otus.hw.exceptions.ErrorHandling;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
@@ -19,11 +19,12 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class FunctionalEndpointsConfig {
 
     @Bean
-    public RouterFunction<ServerResponse> apiRoutes(BookHandler books,
-                                                    AuthorHandler authors,
-                                                    GenreHandler genres,
-                                                    CommentHandler comments,
-                                                    ErrorHandling errorHandling) {
+    public RouterFunction<ServerResponse> composedRoutes(
+            BookHandler books,
+            AuthorHandler authors,
+            GenreHandler genres,
+            CommentHandler comments,
+            HandlerFilterFunction<ServerResponse, ServerResponse> errorFilter) {
 
         return route()
                 .nest(path("/api/v1"), builder -> builder
@@ -39,7 +40,7 @@ public class FunctionalEndpointsConfig {
                                 .GET("/{id}/comments", comments::listByBook)
                         )
                 )
-                .filter(errorHandling.errorFilter())
+                .filter(errorFilter)
                 .build();
     }
 
