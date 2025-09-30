@@ -16,10 +16,15 @@ import ru.otus.hw.util.PatchUtils;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromPublisher;
-import static org.springframework.web.reactive.function.server.ServerResponse.*;
+import static org.springframework.web.reactive.function.server.ServerResponse.created;
+import static org.springframework.web.reactive.function.server.ServerResponse.noContent;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Component
 @RequiredArgsConstructor
@@ -29,7 +34,8 @@ public class BookHandler {
     private final Validator validator;
 
     private static final ParameterizedTypeReference<Map<String, Object>> MAP =
-            new ParameterizedTypeReference<>() {};
+            new ParameterizedTypeReference<>() {
+            };
 
     public Mono<ServerResponse> list(ServerRequest req) {
         return ok().contentType(APPLICATION_JSON)
@@ -37,48 +43,68 @@ public class BookHandler {
     }
 
     public Mono<ServerResponse> get(ServerRequest req) {
-        long id = parseId(req);
-        return bookService.getById(id)
-                .map(BookMapper::toDto)
-                .flatMap(dto -> ok().contentType(APPLICATION_JSON).bodyValue(dto));
+        return withId(req, id ->
+                bookService.getById(id)
+                        .map(BookMapper::toDto)
+                        .flatMap(dto -> ok()
+                                .contentType(APPLICATION_JSON)
+                                .bodyValue(dto))
+        );
     }
 
     public Mono<ServerResponse> create(ServerRequest req) {
-        return req.bodyToMono(BookFormDto.class)
+        return defer(() -> req.bodyToMono(BookFormDto.class)
                 .flatMap(this::validate)
                 .flatMap(f -> bookService.insert(f.title(), f.authorId(), f.genreIds()))
                 .map(BookMapper::toDto)
                 .flatMap(dto -> created(location(req, dto.id()))
                         .contentType(APPLICATION_JSON)
-                        .bodyValue(dto));
+                        .bodyValue(dto)));
     }
 
     public Mono<ServerResponse> update(ServerRequest req) {
-        long id = parseId(req);
-        return req.bodyToMono(BookFormDto.class)
+        return withId(req, id -> req.bodyToMono(BookFormDto.class)
                 .flatMap(this::validate)
                 .flatMap(f -> bookService.update(id, f.title(), f.authorId(), f.genreIds()))
                 .map(BookMapper::toDto)
-                .flatMap(dto -> ok().contentType(APPLICATION_JSON).bodyValue(dto));
+                .flatMap(dto -> ok().contentType(APPLICATION_JSON).bodyValue(dto))
+        );
     }
 
     public Mono<ServerResponse> patch(ServerRequest req) {
-        long id = parseId(req);
-        return req.bodyToMono(MAP)
+        return withId(req, id -> req.bodyToMono(MAP)
                 .flatMap(patch -> bookService.getById(id)
                         .map(existing -> PatchUtils.mergeBookPatch(patch, existing)))
                 .flatMap(args -> bookService.update(id, args.title(), args.authorId(), args.genreIds()))
                 .map(BookMapper::toDto)
-                .flatMap(dto -> ok().contentType(APPLICATION_JSON).bodyValue(dto));
+                .flatMap(dto -> ok()
+                        .contentType(APPLICATION_JSON)
+                        .bodyValue(dto))
+        );
     }
 
     public Mono<ServerResponse> delete(ServerRequest req) {
-        long id = parseId(req);
-        return bookService.deleteById(id).then(noContent().build());
+        return withId(req, id -> bookService.deleteById(id).then(noContent().build()));
     }
 
+    private Mono<ServerResponse> defer(Supplier<Mono<ServerResponse>> supplier) {
+        return Mono.defer(supplier);
+    }
+
+    private Mono<ServerResponse> withId(ServerRequest req, LongFunction<Mono<ServerResponse>> action) {
+        return defer(() -> action.apply(parseId(req)));
+    }
+
+//    private Mono<ServerResponse> withId(ServerRequest req, Function<Long, Mono<ServerResponse>> action) {
+//        return Mono.fromCallable(() -> parseId(req)).flatMap(action);
+//    }
+
     private long parseId(ServerRequest req) {
-        return Long.parseLong(req.pathVariable("id"));
+        try {
+            return Long.parseLong(req.pathVariable("id"));
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Invalid parameter", ex);
+        }
     }
 
     private Mono<BookFormDto> validate(BookFormDto dto) {
