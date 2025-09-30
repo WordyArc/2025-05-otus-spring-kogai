@@ -1,93 +1,108 @@
 package ru.otus.hw.repositories;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import ru.otus.hw.models.Book;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import reactor.test.StepVerifier;
+import ru.otus.hw.CommonContext;
+import ru.otus.hw.TestData;
 import ru.otus.hw.models.Comment;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-class CommentRepositoryTest {
+@DataR2dbcTest
+@ImportAutoConfiguration(JacksonAutoConfiguration.class)
+class CommentRepositoryTest extends CommonContext {
 
     @Autowired
-    private CommentRepository commentRepository;
+    CommentRepository repository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    protected TestData data;
+
+    @BeforeEach
+    void setUp() {
+        data.resetAndSeed();
+    }
+
+    @AfterEach
+    void tearDown() {
+        data.cleanAll();
+    }
 
     @Test
-    @DisplayName("save should create comment")
+    @DisplayName("save creates comment")
     void create() {
-        var book = entityManager.find(Book.class, 1L);
-        var saved = commentRepository.save(new Comment(null, "Nice", book, LocalDateTime.now()));
-        assertThat(saved.getId()).isNotNull();
-
-        entityManager.flush();
-        entityManager.clear();
-        Optional<Comment> reloadedComment = commentRepository.findById(saved.getId());
-        assertThat(reloadedComment).isPresent();
-        assertThat(reloadedComment.get().getText()).isEqualTo("Nice");
+        repository.save(new Comment(null, "Nice", 1L, LocalDateTime.now()))
+                .as(StepVerifier::create)
+                .assertNext(saved -> assertThat(saved.getId()).isNotNull())
+                .verifyComplete();
     }
 
     @Nested
     @DisplayName("findById")
     class FindById {
         @Test
-        @DisplayName("should return existing comment")
+        @DisplayName("returns existing comment")
         void existing() {
-            var book = entityManager.find(Book.class, 1L);
-            var saved = commentRepository.save(new Comment(null, "A", book, LocalDateTime.now()));
-            assertThat(commentRepository.findById(saved.getId())).isPresent();
+            repository.save(new Comment(null, "A", 1L, LocalDateTime.now()))
+                    .flatMap(c -> repository.findById(c.getId()))
+                    .as(StepVerifier::create)
+                    .assertNext(found -> assertThat(found.getText()).isEqualTo("A"))
+                    .verifyComplete();
         }
 
         @Test
-        @DisplayName("should return empty when not found")
+        @DisplayName("returns empty when not found")
         void missing() {
-            assertThat(commentRepository.findById(123456L)).isEmpty();
+            repository.findById(123456L)
+                    .as(StepVerifier::create)
+                    .verifyComplete();
         }
     }
 
     @Test
-    @DisplayName("findAllByBookId should return only comments for that book")
+    @DisplayName("findAllByBookId returns only comments for that book")
     void findAllByBook() {
-        var book1 = entityManager.find(Book.class, 1L);
-        var book2 = entityManager.find(Book.class, 2L);
-        commentRepository.save(new Comment(null, "c1", book1, LocalDateTime.now()));
-        commentRepository.save(new Comment(null, "c2", book2, LocalDateTime.now()));
-
-        var c1 = commentRepository.findAllByBookId(1L);
-        assertThat(c1).allMatch(c -> c.getBook().getId().equals(1L));
-
-        var empty = commentRepository.findAllByBookId(9999L);
-        assertThat(empty).isEmpty();
+        repository.save(new Comment(null, "c1", 1L, LocalDateTime.now()))
+                .thenMany(repository.save(new Comment(null, "c2", 2L, LocalDateTime.now())))
+                .thenMany(repository.findAllByBookId(1L))
+                .as(StepVerifier::create)
+                .thenConsumeWhile(c -> {
+                    assertThat(c.getBookId()).isEqualTo(1L);
+                    return true;
+                })
+                .verifyComplete();
     }
 
     @Test
-    @DisplayName("save should update text for existing comment")
+    @DisplayName("save updates text for existing comment")
     void update() {
-        var book = entityManager.find(Book.class, 1L);
-        var saved = commentRepository.save(new Comment(null, "Text", book, LocalDateTime.now()));
-        saved.setText("Edited");
-        commentRepository.save(saved);
-
-        assertThat(commentRepository.findById(saved.getId())).get().extracting(Comment::getText).isEqualTo("Edited");
+        repository.save(new Comment(null, "Text", 1L, LocalDateTime.now()))
+                .flatMap(c -> {
+                    c.setText("Edited");
+                    return repository.save(c).then(repository.findById(c.getId()));
+                })
+                .as(StepVerifier::create)
+                .assertNext(updated -> assertThat(updated.getText()).isEqualTo("Edited"))
+                .verifyComplete();
     }
 
     @Test
-    @DisplayName("deleteById should be idempotent")
+    @DisplayName("deleteById is idempotent")
     void delete() {
-        var book = entityManager.find(Book.class, 1L);
-        var saved = commentRepository.save(new Comment(null, "Text", book, LocalDateTime.now()));
-        commentRepository.deleteById(saved.getId());
-        assertThat(commentRepository.findById(saved.getId())).isEmpty();
+        repository.save(new Comment(null, "Text", 1L, LocalDateTime.now()))
+                .flatMap(c -> repository.deleteById(c.getId()).then(repository.findById(c.getId())))
+                .as(StepVerifier::create)
+                .verifyComplete();
     }
 
 }

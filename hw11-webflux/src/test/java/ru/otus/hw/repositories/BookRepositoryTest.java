@@ -1,49 +1,74 @@
 package ru.otus.hw.repositories;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import ru.otus.hw.models.Book;
+import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson;
+import reactor.test.StepVerifier;
+import ru.otus.hw.CommonContext;
+import ru.otus.hw.TestData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-class BookRepositoryTest {
+@DataR2dbcTest
+@AutoConfigureJson
+class BookRepositoryTest extends CommonContext {
 
     @Autowired
-    private BookRepository repository;
+    BookRepository repository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    protected TestData data;
+
+    @BeforeEach
+    void setUp() {
+        data.resetAndSeed();
+    }
+
+    @AfterEach
+    void tearDown() {
+        data.cleanAll();
+    }
 
     @Test
-    @DisplayName("should find book by id with author and genres")
+    @DisplayName("findAggregateById returns book with author and genres")
     void shouldFindById() {
-        var book = repository.findById(1L).orElseThrow();
-        assertThat(book.getTitle()).isEqualTo("BookTitle_1");
-        assertThat(book.getAuthor().getFullName()).isEqualTo("Author_1");
-        assertThat(book.getGenres()).hasSize(2);
+        repository.findAggregateById(1L)
+                .as(StepVerifier::create)
+                .assertNext(b -> {
+                    assertThat(b.getTitle()).isEqualTo("BookTitle_1");
+                    assertThat(b.getAuthor().getFullName()).isEqualTo("Author_1");
+                    assertThat(b.getGenres()).hasSize(2);
+                })
+                .verifyComplete();
     }
 
     @Test
-    @DisplayName("should return all books with author and genres")
+    @DisplayName("findAllAggregates returns all books with relations")
     void shouldFindAll() {
-        var list = repository.findAll();
-        assertThat(list).hasSize(3);
-        list.forEach(b -> {
-            assertThat(b.getAuthor().getFullName()).isNotBlank();
-            assertThat(b.getGenres()).isNotEmpty();
-        });
+        repository.findAllAggregates()
+                .collectList()
+                .as(StepVerifier::create)
+                .assertNext(list -> {
+                    assertThat(list).hasSize(3);
+                    list.forEach(b -> {
+                        assertThat(b.getAuthor().getFullName()).isNotBlank();
+                        assertThat(b.getGenres()).isNotEmpty();
+                    });
+                })
+                .verifyComplete();
     }
 
     @Test
-    @DisplayName("should delete existing book")
+    @DisplayName("deleteById removes a book")
     void deleteExisting() {
-        repository.deleteById(1L);
-        entityManager.flush(); entityManager.clear();
-        assertThat(entityManager.find(Book.class, 1L)).isNull();
+        repository.deleteById(1L)
+                .then(repository.findAggregateById(1L))
+                .as(StepVerifier::create)
+                .verifyComplete();
     }
 
 }
