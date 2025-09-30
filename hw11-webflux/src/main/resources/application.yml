@@ -3,16 +3,24 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:maindb
+    url: jdbc:h2:mem:maindb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
-  r2dbc:
-    url: r2dbc:h2:mem:///maindb
     username: sa
-    password:
+    password: ""
+
+  r2dbc:
+    url: r2dbc:h2:mem:///maindb?options=DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    pool:
+      enabled: true
 
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
 
   sql:
     init:
@@ -28,3 +36,7 @@ spring:
   thymeleaf:
     reactive:
       max-chunk-size: 8192
+
+logging:
+  level:
+    io.r2dbc.h2.H2Connection: error
