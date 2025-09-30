@@ -22,10 +22,6 @@ import java.util.function.BiFunction;
 @RequiredArgsConstructor
 public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
-    private final R2dbcEntityOperations ops;
-
-    private final ObjectMapper objectMapper;
-
     private static final String BASE_JSON = """
             select
               b.id as id,
@@ -45,6 +41,18 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
             join authors a on a.id = b.author_id
             
             """;
+
+    private final BiFunction<Row, RowMetadata, Book> bookAggregateMapper = (row, md) -> mapRow(
+            row.get("id", Long.class),
+            row.get("title", String.class),
+            row.get("author", String.class),
+            row.get("genres", String.class)
+    );
+
+    private final R2dbcEntityOperations ops;
+
+    private final ObjectMapper objectMapper;
+
 
     @Override
     public Flux<Book> findAllAggregates() {
@@ -78,13 +86,6 @@ public class BookRepositoryCustomImpl implements BookRepositoryCustom {
 
         return delete.thenMany(batchInsert).then();
     }
-
-    private final BiFunction<Row, RowMetadata, Book> bookAggregateMapper = (row, md) -> mapRow(
-            row.get("id", Long.class),
-            row.get("title", String.class),
-            row.get("author", String.class),
-            row.get("genres", String.class)
-    );
 
     private Book mapRow(Long id, String title, String authorJson, String genresJson) {
         try {
