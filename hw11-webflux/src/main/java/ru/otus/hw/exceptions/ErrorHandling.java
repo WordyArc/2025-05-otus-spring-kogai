@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.reactive.function.server.HandlerFilterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.server.ServerWebInputException;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -35,6 +36,14 @@ public class ErrorHandling {
                     if (ex instanceof DecodingException) {
                         return error(HttpStatus.BAD_REQUEST, "Bad Request", "Malformed JSON");
                     }
+                    if (ex instanceof ServerWebInputException swe) {
+                        var cause = swe.getCause();
+                        var detail = (cause instanceof DecodingException)
+                                ? "Malformed JSON"
+                                : "Invalid parameter";
+                        return error(HttpStatus.BAD_REQUEST, "Bad Request", detail);
+                    }
+
 
                     return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error");
                 });
