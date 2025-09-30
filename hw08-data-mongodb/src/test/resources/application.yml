@@ -1,0 +1,34 @@
+test:
+  mongo:
+    mode: embedded # варианты embedded | container
+    image: mongo:7.0.14
+
+
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.shell.boot.StandardCommandsAutoConfiguration
+  data:
+    mongodb:
+      database: testdb
+      port: 0
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.14
+
+logging:
+  level:
+    org.mongodb.driver.cluster: error
+
+mongock:
+  enabled: true
+  migration-scan-package:
+    - ru.otus.hw.migrations
