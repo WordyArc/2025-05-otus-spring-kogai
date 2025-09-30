@@ -24,23 +24,23 @@ public class ErrorHandling {
                     log.debug("Handling error", ex);
 
                     if (ex instanceof EntityNotFoundException enf) {
-                        return createErrorResponse(HttpStatus.NOT_FOUND, "Not Found", enf.getMessage());
+                        return error(HttpStatus.NOT_FOUND, "Not Found", enf.getMessage());
                     }
                     if (ex instanceof IllegalArgumentException iae) {
-                        return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", iae.getMessage());
+                        return error(HttpStatus.BAD_REQUEST, "Bad Request", iae.getMessage());
                     }
                     if (ex instanceof ConstraintViolationException cve) {
-                        return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", cve.getMessage());
+                        return error(HttpStatus.BAD_REQUEST, "Bad Request", cve.getMessage());
                     }
                     if (ex instanceof DecodingException) {
-                        return createErrorResponse(HttpStatus.BAD_REQUEST, "Bad Request", "Malformed JSON");
+                        return error(HttpStatus.BAD_REQUEST, "Bad Request", "Malformed JSON");
                     }
 
-                    return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error");
+                    return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "Unexpected error");
                 });
     }
 
-    private Mono<ServerResponse> createErrorResponse(HttpStatus status, String title, String detail) {
+    private Mono<ServerResponse> error(HttpStatus status, String title, String detail) {
         var problemDetail = ProblemDetail.forStatus(status);
         problemDetail.setTitle(title);
         problemDetail.setDetail(detail);
