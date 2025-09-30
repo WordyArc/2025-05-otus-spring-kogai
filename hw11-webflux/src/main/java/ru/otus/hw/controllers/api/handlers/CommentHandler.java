@@ -18,7 +18,7 @@ public class CommentHandler {
     private final CommentService commentService;
 
     public Mono<ServerResponse> listByBook(ServerRequest request) {
-        long bookId = Long.parseLong(request.pathVariable("bookId"));
+        long bookId = Long.parseLong(request.pathVariable("id"));
         return ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(fromPublisher(
