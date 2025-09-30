@@ -88,6 +88,11 @@ public class BookServiceImpl implements BookService {
     private Mono<Book> saveAndReload(Long id, String title, Long authorId, Set<Long> genresIds) {
         return bookRepository.save(new Book(id, title, authorId, null, null))
                 .flatMap(saved -> bookRepository.replaceGenres(saved.getId(), genresIds).thenReturn(saved))
-                .flatMap(saved -> getById(saved.getId()));
+                .flatMap(saved -> loadAggregateOrNotFound(saved.getId()));
+    }
+
+    private Mono<Book> loadAggregateOrNotFound(Long id) {
+        return bookRepository.findAggregateById(id)
+                .switchIfEmpty(Mono.error(new EntityNotFoundException("Book with id %d not found".formatted(id))));
     }
 }
