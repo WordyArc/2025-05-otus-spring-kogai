@@ -27,7 +27,7 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="2025-09-20-create-user-roles" author="Viktor Kogai">
+    <changeSet id="2025-10-02-create-user-roles" author="Viktor Kogai">
         <createTable tableName="user_roles">
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
