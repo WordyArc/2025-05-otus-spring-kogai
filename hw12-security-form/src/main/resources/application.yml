@@ -2,24 +2,33 @@ server:
   forward-headers-strategy: framework
 
 spring:
-  h2:
-    console:
-      enabled: false
-      path: /h2-console
   datasource:
-    url: jdbc:h2:mem:maindb
-  sql:
-    init:
-      mode: always
-      data-locations: classpath:/data.sql
-      schema-locations: []
+    url: jdbc:h2:mem:maindb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
   jpa:
+    #defer-datasource-initialization: true
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         format_sql: true
         default_batch_fetch_size: 50
+
+
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml
+
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:/data.sql
+      schema-locations: []
+
+  h2:
+    console:
+      enabled: false
+      path: /h2-console
