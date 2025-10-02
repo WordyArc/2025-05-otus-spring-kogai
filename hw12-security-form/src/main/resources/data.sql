@@ -18,3 +18,12 @@ values
   ('A classic!', 1, CURRENT_TIMESTAMP()),
   ('Solid read', 1, CURRENT_TIMESTAMP()),
   ('Not my cup of tea', 2, CURRENT_TIMESTAMP());
+
+insert into users(username, password, enabled, full_name)
+values ('user', '{noop}user', true, 'User One'),
+       ('admin', '{noop}admin', true, 'Administrator');
+
+insert into user_roles(user_id, role)
+values
+  ((select id from users where username='user'), 'ROLE_USER'),
+  ((select id from users where username='admin'), 'ROLE_ADMIN');
