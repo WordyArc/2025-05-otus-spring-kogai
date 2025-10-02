@@ -11,6 +11,12 @@
             <a th:href="@{/books}">Books</a>
             <a th:href="@{/authors}">Authors</a>
             <a th:href="@{/genres}">Genres</a>
+            <span class="spacer"></span>
+
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn">Logout</button>
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            </form>
         </nav>
 
         <main class="container" th:insert="${content}"></main>
