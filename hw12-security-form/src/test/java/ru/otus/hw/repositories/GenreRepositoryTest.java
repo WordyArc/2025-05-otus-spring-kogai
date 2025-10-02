@@ -1,10 +1,12 @@
 package ru.otus.hw.repositories;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import ru.otus.hw.models.Genre;
 
 import java.util.Set;
@@ -17,14 +19,33 @@ class GenreRepositoryTest {
     @Autowired
     private GenreRepository repository;
 
+    @Autowired
+    private TestEntityManager em;
+
+    private Genre genre1;
+    private Genre genre2;
+    private Genre genre3;
+
+    @BeforeEach
+    void setUp() {
+        genre1 = new Genre(null, "Fantasy");
+        genre2 = new Genre(null, "Science Fiction");
+        genre3 = new Genre(null, "Mystery");
+
+        genre1 = em.persistAndFlush(genre1);
+        genre2 = em.persistAndFlush(genre2);
+        genre3 = em.persistAndFlush(genre3);
+    }
+
     @Test
     @DisplayName("should load all genres")
     void shouldFindAll() {
         var list = repository.findAll();
+        assertThat(list).hasSize(3);
         assertThat(list).extracting(Genre::getId)
-                .containsExactlyInAnyOrder(1L, 2L, 3L, 4L, 5L, 6L);
+                .containsExactlyInAnyOrder(genre1.getId(), genre2.getId(), genre3.getId());
         assertThat(list).extracting(Genre::getName)
-                .containsExactlyInAnyOrder("Genre_1","Genre_2","Genre_3","Genre_4","Genre_5","Genre_6");
+                .containsExactlyInAnyOrder("Fantasy", "Science Fiction", "Mystery");
     }
 
     @Nested
@@ -33,9 +54,10 @@ class GenreRepositoryTest {
         @Test
         @DisplayName("should return exactly requested ids")
         void ordered() {
-            var list = repository.findAllByIdIn(Set.of(5L, 2L));
+            var list = repository.findAllByIdIn(Set.of(genre1.getId(), genre3.getId()));
+            assertThat(list).hasSize(2);
             assertThat(list).extracting(Genre::getId)
-                    .containsExactlyInAnyOrder(2L, 5L);
+                    .containsExactlyInAnyOrder(genre1.getId(), genre3.getId());
         }
 
         @Test
