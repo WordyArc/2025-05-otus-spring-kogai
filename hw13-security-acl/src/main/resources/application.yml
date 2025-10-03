@@ -2,6 +2,12 @@ server:
   forward-headers-strategy: framework
 
 spring:
+  cache:
+    type: caffeine
+    cache-names: aclCache
+    caffeine:
+      spec: maximumSize=10000,expireAfterAccess=10m
+
   datasource:
     url: jdbc:h2:mem:maindb;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
