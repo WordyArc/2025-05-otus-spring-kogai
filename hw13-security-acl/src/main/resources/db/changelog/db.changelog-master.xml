@@ -13,4 +13,6 @@
     <include file="db/changelog/2.0/2025-09-12--create-comments_table.xml" relativeToChangelogFile="false"/>
 
     <include file="db/changelog/3.0/2025-10-02--create-users-and-roles.xml" relativeToChangelogFile="false"/>
+
+    <include file="db/changelog/4.0/2025-10-03--create-acl-tables.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>
