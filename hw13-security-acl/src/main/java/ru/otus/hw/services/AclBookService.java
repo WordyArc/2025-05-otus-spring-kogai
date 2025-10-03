@@ -1,12 +1,14 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.security.acls.domain.GrantedAuthoritySid;
 import org.springframework.security.acls.domain.ObjectIdentityImpl;
 import org.springframework.security.acls.domain.PrincipalSid;
 import org.springframework.security.acls.jdbc.JdbcMutableAclService;
 import org.springframework.security.acls.model.MutableAcl;
+import org.springframework.security.acls.model.NotFoundException;
 import org.springframework.security.acls.model.ObjectIdentity;
 import org.springframework.security.acls.model.Permission;
 import org.springframework.security.acls.model.Sid;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Role;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AclBookService {
@@ -35,7 +38,7 @@ public class AclBookService {
         add(acl, BasePermission.DELETE, ownerSid);
         add(acl, BasePermission.ADMINISTRATION, ownerSid);
 
-        var adminSid = new GrantedAuthoritySid(Role.ROLE_ADMIN.name);
+        var adminSid = new GrantedAuthoritySid(Role.ROLE_ADMIN.name());
         add(acl, BasePermission.READ, adminSid);
         add(acl, BasePermission.WRITE, adminSid);
         add(acl, BasePermission.DELETE, adminSid);
@@ -46,7 +49,11 @@ public class AclBookService {
 
     public void deleteAcl(Long bookId) {
         ObjectIdentity oid = new ObjectIdentityImpl(Book.class, bookId);
-        aclService.deleteAcl(oid, false);
+        try {
+            aclService.deleteAcl(oid, false);
+        } catch (NotFoundException ignore) {
+            log.debug("ACL entry not found for Book with id: {}", bookId);
+        }
     }
 
     private static void add(MutableAcl acl, Permission permission, Sid sid) {
