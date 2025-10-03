@@ -37,6 +37,9 @@ class BookServiceTest {
     @Mock
     private GenreRepository genreRepository;
 
+    @Mock
+    private AclBookService aclBookService;
+
     @InjectMocks
     private BookServiceImpl bookService;
 
@@ -92,6 +95,7 @@ class BookServiceTest {
 
         assertThat(result).isNotNull();
         verify(bookRepository).save(any(Book.class));
+        verify(aclBookService).createDefaultAcl(testBook);
     }
 
     @Test
@@ -153,5 +157,6 @@ class BookServiceTest {
         bookService.deleteById(1L);
 
         verify(bookRepository).deleteById(1L);
+        verify(aclBookService).deleteAcl(1L);
     }
 }
