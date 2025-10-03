@@ -73,7 +73,7 @@ class ApiSecurityTest {
         @DisplayName("should deny reading resources")
         void shouldDenyRead() throws Exception {
             mvc.perform(get("/api/v1/books"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -84,7 +84,7 @@ class ApiSecurityTest {
             mvc.perform(post("/api/v1/books")
                             .contentType(APPLICATION_JSON)
                             .content(mapper.writeValueAsString(bookForm)))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
@@ -95,14 +95,14 @@ class ApiSecurityTest {
             mvc.perform(put("/api/v1/books/1")
                             .contentType(APPLICATION_JSON)
                             .content(mapper.writeValueAsString(bookForm)))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
 
         @Test
         @DisplayName("should deny deleting resources")
         void shouldDenyDelete() throws Exception {
             mvc.perform(delete("/api/v1/books/1"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isUnauthorized());
         }
     }
 
