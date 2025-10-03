@@ -27,3 +27,40 @@ insert into user_roles(user_id, role)
 values
   ((select id from users where username='user'), 'ROLE_USER'),
   ((select id from users where username='admin'), 'ROLE_ADMIN');
+
+
+
+insert into acl_sid(principal, sid) values
+ (true,  'admin'),
+ (true,  'user'),
+ (false, 'ROLE_ADMIN'),
+ (false, 'ROLE_USER');
+
+insert into acl_class(class) values ('ru.otus.hw.models.Book');
+
+insert into acl_object_identity(object_id_class, object_id_identity, parent_object, owner_sid, entries_inheriting)
+select c.id, b.id, null,
+       (select s.id from acl_sid s where s.principal = true and s.sid = 'admin'),
+       false
+from books b cross join acl_class c
+where c.class = 'ru.otus.hw.models.Book';
+
+
+-- admin: sudo - все права
+insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 0, s_admin.id, 31, true, false, false
+from acl_object_identity aoi
+join acl_sid s_admin on s_admin.sid='admin' and s_admin.principal=true;
+
+-- ROLE_ADMIN: - все права
+insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 2, s_role_admin.id, 31, true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_admin on s_role_admin.sid='ROLE_ADMIN' and s_role_admin.principal=false;
+
+-- ROLE_USER: READ только на Book id=1
+insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 5, s_role_user.id, 1, true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_user on s_role_user.sid='ROLE_USER' and s_role_user.principal=false
+where aoi.object_id_identity = 1;
