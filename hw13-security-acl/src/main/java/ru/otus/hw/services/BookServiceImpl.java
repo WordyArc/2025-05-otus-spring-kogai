@@ -1,6 +1,9 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -16,21 +19,25 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
+
     private final AuthorRepository authorRepository;
 
     private final GenreRepository genreRepository;
 
     private final BookRepository bookRepository;
 
+    private final AclBookService aclBookService;
+
     @Override
     @Transactional(readOnly = true)
-    public Optional<Book> findById(Long id) {
-        return bookRepository.findById(id);
+    @PostFilter("hasPermission(filterObject, 'READ')")
+    public List<Book> findAll() {
+        return bookRepository.findAll();
     }
 
-
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasPermission(#id, 'ru.otus.hw.models.Book', 'READ')")
     public Book getById(Long id) {
         return bookRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id %d not found".formatted(id)));
@@ -38,18 +45,23 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Book> findAll() {
-        return bookRepository.findAll();
+    @PostAuthorize("returnObject.isEmpty() or hasPermission(returnObject.get(), 'READ')")
+    public Optional<Book> findById(Long id) {
+        return bookRepository.findById(id);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("isAuthenticated()")
     public Book insert(String title, Long authorId, Set<Long> genresIds) {
-        return save(null, title, authorId, genresIds);
+        var saved = save(null, title, authorId, genresIds);
+        aclBookService.createDefaultAcl(saved);
+        return saved;
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasPermission(#id, 'ru.otus.hw.models.Book', 'WRITE')")
     public Book update(Long id, String title, Long authorId, Set<Long> genresIds) {
         if (!bookRepository.existsById(id)) {
             throw new EntityNotFoundException("Book with id %d not found".formatted(id));
@@ -59,7 +71,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
+    @PreAuthorize("hasPermission(#id, 'ru.otus.hw.models.Book', 'DELETE') or hasRole('ADMIN')")
     public void deleteById(Long id) {
+        aclBookService.deleteAcl(id);
         bookRepository.deleteById(id);
     }
 
