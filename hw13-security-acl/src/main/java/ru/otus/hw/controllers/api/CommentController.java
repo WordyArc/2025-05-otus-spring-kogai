@@ -13,12 +13,12 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/books/{bookId}/comments")
+@RequestMapping("/api/v1")
 public class CommentController {
 
     private final CommentService commentService;
 
-    @GetMapping
+    @GetMapping("/books/{bookId}/comments")
     public List<CommentDto> list(@PathVariable Long bookId) {
         return commentService.findAllByBookId(bookId).stream()
                 .map(CommentMapper::toDto)
