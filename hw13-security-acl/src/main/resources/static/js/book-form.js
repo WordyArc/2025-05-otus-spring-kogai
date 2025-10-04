@@ -1,98 +1,117 @@
+import {AuthorsApi, BooksApi, GenresApi} from './shared/api.js'
+import {clearFieldErrors, fillOptions, qs, setFieldError, showToast} from './shared/ui.js';
+import {ApiError} from './shared/http.js';
+
 (async function init() {
     const path = location.pathname;
     const isEdit = /\/books\/\d+\/edit$/.test(path);
     const id = isEdit ? path.split('/')[2] : null;
-    document.getElementById('formTitle').textContent = isEdit ? 'Edit book' : 'Create book';
+    qs('#formTitle').textContent = isEdit ? 'Edit book' : 'Create book';
 
-    const [authorsRes, genresRes] = await Promise.all([
-        fetch('/api/v1/authors'),
-        fetch('/api/v1/genres')
-    ]);
-    if (!authorsRes.ok || !genresRes.ok) {
-        alert('Failed to load references');
+    try {
+        const [authors, genres] = await Promise.all([AuthorsApi.list(), GenresApi.list()]);
+        fillOptions(qs('#authorId'), authors, 'id', 'fullName', true);
+        fillOptions(qs('#genreIds'), genres, 'id', 'name', false);
+    } catch (e) {
+        showToast('Failed to load references');
         return;
     }
-    const authors = await authorsRes.json();
-    const genres = await genresRes.json();
-    fillOptions(document.getElementById('authorId'), authors, 'id', 'fullName', true);
-    fillOptions(document.getElementById('genreIds'), genres, 'id', 'name', false);
 
     if (isEdit) {
-        const resp = await fetch(`/api/v1/books/${id}`);
-        if (!resp.ok) return;
-        const data = await resp.json();
-        document.getElementById('bookId').value = data.id;
-        document.getElementById('title').value = data.title ?? '';
-        document.getElementById('authorId').value = String(data.author.id);
-        const set = new Set((data.genres ?? []).map(g => String(g.id)));
-        [...document.getElementById('genreIds').options].forEach(o => { o.selected = set.has(o.value); });
+        try {
+            const data = await BooksApi.get(id);
+            qs('#bookId').value = data.id;
+            qs('#title').value = data.title ?? '';
+            qs('#authorId').value = String(data.author.id);
+            const set = new Set((data.genres ?? []).map(g => String(g.id)));
+            [...qs('#genreIds').options].forEach(o => { o.selected = set.has(String(o.value)); });
+        } catch {
+            showToast('Failed to load book');
+            return;
+        }
     }
 
-    document.getElementById('bookForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        clearErrors();
-        const payload = collect();
-        const url = isEdit ? `/api/v1/books/${id}` : '/api/v1/books';
-        const method = isEdit ? 'PUT' : 'POST';
-        const res = await fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-            const body = await res.json();
-            location.assign(`/books/${body.id}`);
-        } else if (res.status === 400) {
-            const pd = await res.json();
-            showErrors(pd.detail ?? 'Validation error');
-        } else {
-            alert('Save failed');
-        }
-    });
+    qs('#bookForm').addEventListener('submit', onSubmit);
 
     function collect() {
-        const title = document.getElementById('title').value.trim();
-        const authorId = Number(document.getElementById('authorId').value);
-        const genreIds = [...document.getElementById('genreIds').selectedOptions].map(o => Number(o.value));
+        const title = qs('#title').value.trim();
+        const authorValue = qs('#authorId').value;
+        const authorId = authorValue ? Number(authorValue) : null;
+        const genreIds = [...qs('#genreIds').selectedOptions].map(o => Number(o.value));
         return { title, authorId, genreIds };
     }
 
-    function fillOptions(sel, items, valKey, textKey, addPlaceholder) {
-        sel.innerHTML = '';
-        if (addPlaceholder) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.disabled = true;
-            opt.selected = true;
-            opt.textContent = '- select -';
-            sel.appendChild(opt);
+    function validateLocal({ title, authorId, genreIds }) {
+        const errors = {};
+        if (!title) errors.title = 'Title must not be blank';
+        if (authorId == null) errors.authorId = 'Author is required';
+        if (!Array.isArray(genreIds) || genreIds.length === 0) errors.genreIds = 'Select at least one genre';
+        return errors;
+    }
+
+    function applyErrors(errors) {
+        clearFieldErrors(['errTitle','errAuthor','errGenres']);
+        if (errors.title)    setFieldError('errTitle',  errors.title);
+        if (errors.authorId) setFieldError('errAuthor', errors.authorId);
+        if (errors.genreIds) setFieldError('errGenres', errors.genreIds);
+    }
+
+    function parseFieldErrors(detail) {
+        const map = {};
+        (detail || '')
+            .split(';')
+            .map(s => s.trim())
+            .filter(Boolean)
+            .forEach(pair => {
+                const idx = pair.indexOf(':');
+                if (idx === -1) return;
+                const field = pair.slice(0, idx).trim();
+                const msg = pair.slice(idx + 1).trim();
+                map[field] = msg;
+            });
+        return map;
+    }
+
+    async function onSubmit(e) {
+        e.preventDefault();
+        clearFieldErrors(['errTitle','errAuthor','errGenres']);
+
+        const dto = collect();
+        const localErrors = validateLocal(dto);
+        if (Object.keys(localErrors).length) {
+            applyErrors(localErrors);
+            return;
         }
-        for (const it of items) {
-            const opt = document.createElement('option');
-            opt.value = it[valKey];
-            opt.textContent = it[textKey];
-            sel.appendChild(opt);
+
+        try {
+            const saved = isEdit ? await BooksApi.update(id, dto) : await BooksApi.create(dto);
+            location.assign(`/books/${saved.id}`);
+        } catch (err) {
+            if (!(err instanceof ApiError)) {
+                showToast('Save failed');
+                return;
+            }
+            if (err.status === 400) {
+                const fe = parseFieldErrors(err.detail);
+                applyErrors({
+                    title:    fe.title,
+                    authorId: fe.authorId,
+                    genreIds: fe.genreIds
+                });
+                if (!fe.title && !fe.authorId && !fe.genreIds) showToast(err.detail);
+                return;
+            }
+            if (err.status === 404) {
+                const m = err.detail.toLowerCase();
+                const mapped = {};
+                if (m.includes('author')) mapped.authorId = err.detail;
+                if (m.includes('genre'))  mapped.genreIds = err.detail;
+                if (Object.keys(mapped).length) {
+                    applyErrors(mapped);
+                    return;
+                }
+            }
+            showToast(err.detail || 'Save failed');
         }
-    }
-
-    function showErrors(msg) {
-        const m = String(msg).toLowerCase();
-        if (m.includes('title')) show('errTitle', msg);
-        if (m.includes('author')) show('errAuthor', msg);
-        if (m.includes('genre')) show('errGenres', msg);
-    }
-
-    function show(id, text) {
-        const el = document.getElementById(id);
-        el.textContent = text;
-        el.style.display = 'block';
-    }
-
-    function clearErrors() {
-        ['errTitle', 'errAuthor', 'errGenres'].forEach(id => {
-            const el = document.getElementById(id);
-            el.textContent = '';
-            el.style.display = 'none';
-        });
     }
 })();
