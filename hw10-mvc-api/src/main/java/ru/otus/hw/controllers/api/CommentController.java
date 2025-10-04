@@ -22,7 +22,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/books/{bookId}/comments")
-    public List<CommentDto> list(@PathVariable Long bookId) {
+    public List<CommentDto> listByBook(@PathVariable Long bookId) {
         return commentService.findAllByBookId(bookId).stream()
                 .map(CommentMapper::toDto)
                 .toList();
