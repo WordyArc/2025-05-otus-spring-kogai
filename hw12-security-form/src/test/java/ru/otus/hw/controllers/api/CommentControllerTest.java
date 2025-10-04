@@ -32,7 +32,7 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("GET /api/v1/books/{id}/comments returns list")
-    void list() throws Exception {
+    void listByBook() throws Exception {
         var c = new Comment(1L, "Nice", new Book(1L, "T", new Author(1L, "A"), List.of()), LocalDateTime.now());
         when(commentService.findAllByBookId(1L)).thenReturn(List.of(c));
         mvc.perform(get("/api/v1/books/1/comments"))
