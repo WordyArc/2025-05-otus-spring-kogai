@@ -47,16 +47,56 @@ where c.class = 'ru.otus.hw.models.Book';
 
 
 -- admin: sudo - все права
-insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
-select aoi.id, 0, s_admin.id, 31, true, false, false
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 100, s_admin.id, 1,  true, false, false
 from acl_object_identity aoi
-join acl_sid s_admin on s_admin.sid='admin' and s_admin.principal=true;
+join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 101, s_admin.id, 2,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
+п
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 102, s_admin.id, 4,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 103, s_admin.id, 8,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 104, s_admin.id, 16, true, false, false
+from acl_object_identity aoi
+join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
 
 -- ROLE_ADMIN: - все права
-insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
-select aoi.id, 2, s_role_admin.id, 31, true, false, false
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 110, s_role_admin.id, 1,  true, false, false
 from acl_object_identity aoi
-join acl_sid s_role_admin on s_role_admin.sid='ROLE_ADMIN' and s_role_admin.principal=false;
+join acl_sid s_role_admin on s_role_admin.sid = 'ROLE_ADMIN' and s_role_admin.principal = false;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 111, s_role_admin.id, 2,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_admin on s_role_admin.sid = 'ROLE_ADMIN' and s_role_admin.principal = false;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 112, s_role_admin.id, 4,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_admin on s_role_admin.sid = 'ROLE_ADMIN' and s_role_admin.principal = false;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 113, s_role_admin.id, 8,  true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_admin on s_role_admin.sid = 'ROLE_ADMIN' and s_role_admin.principal = false;
+
+insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
+select aoi.id, 114, s_role_admin.id, 16, true, false, false
+from acl_object_identity aoi
+join acl_sid s_role_admin on s_role_admin.sid = 'ROLE_ADMIN' and s_role_admin.principal = false;
 
 -- ROLE_USER: READ только на Book id=1
 insert into acl_entry(acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
