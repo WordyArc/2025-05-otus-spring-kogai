@@ -51,11 +51,10 @@ public class BatchReaderConfig {
                 .name("bookReader")
                 .entityManagerFactory(emf)
                 .queryString("""
-                            select distinct b
-                            from Book b
-                            join fetch b.author a
-                            left join fetch b.genres g
-                            order by b.id
+                        select b
+                        from Book b
+                        join fetch b.author a
+                        order by b.id
                         """)
                 .saveState(true)
                 .build();
