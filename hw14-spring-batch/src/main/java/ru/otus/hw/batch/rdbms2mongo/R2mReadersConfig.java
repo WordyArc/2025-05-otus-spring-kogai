@@ -62,12 +62,11 @@ public class R2mReadersConfig {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<Comment> commentReader() {
-        return new JpaPagingItemReaderBuilder<Comment>()
+    public JpaCursorItemReader<Comment> commentReader() {
+        return new JpaCursorItemReaderBuilder<Comment>()
                 .name("commentReader")
                 .entityManagerFactory(emf)
                 .queryString("select c from Comment c order by c.id")
-                .pageSize(1000)
                 .saveState(true)
                 .build();
     }
