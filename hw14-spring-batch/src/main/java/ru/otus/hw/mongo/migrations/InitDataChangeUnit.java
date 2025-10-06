@@ -27,20 +27,20 @@ public class InitDataChangeUnit {
 
     @Execution
     public void seed() {
-        var a1 = authorRepository.save(new AuthorDocument("a1", "Author_1"));
-        var a2 = authorRepository.save(new AuthorDocument("a2", "Author_2"));
-        var a3 = authorRepository.save(new AuthorDocument("a3", "Author_3"));
+        var a1 = authorRepository.save(new AuthorDocument(null, "Author_1"));
+        var a2 = authorRepository.save(new AuthorDocument(null, "Author_2"));
+        var a3 = authorRepository.save(new AuthorDocument(null, "Author_3"));
 
-        var g1 = genreRepository.save(new GenreDocument("g1", "Genre_1"));
-        var g2 = genreRepository.save(new GenreDocument("g2", "Genre_2"));
-        var g3 = genreRepository.save(new GenreDocument("g3", "Genre_3"));
-        var g4 = genreRepository.save(new GenreDocument("g4", "Genre_4"));
-        var g5 = genreRepository.save(new GenreDocument("g5", "Genre_5"));
-        var g6 = genreRepository.save(new GenreDocument("g6", "Genre_6"));
+        var g1 = genreRepository.save(new GenreDocument(null, "Genre_1"));
+        var g2 = genreRepository.save(new GenreDocument(null, "Genre_2"));
+        var g3 = genreRepository.save(new GenreDocument(null, "Genre_3"));
+        var g4 = genreRepository.save(new GenreDocument(null, "Genre_4"));
+        var g5 = genreRepository.save(new GenreDocument(null, "Genre_5"));
+        var g6 = genreRepository.save(new GenreDocument(null, "Genre_6"));
 
-        bookRepository.save(new BookDocument("b1", "BookTitle_1", a1, List.of(g1, g2)));
-        bookRepository.save(new BookDocument("b2", "BookTitle_2", a2, List.of(g3, g4)));
-        bookRepository.save(new BookDocument("b3", "BookTitle_3", a3, List.of(g5, g6)));
+        bookRepository.save(new BookDocument(null, "BookTitle_1", a1, List.of(g1, g2)));
+        bookRepository.save(new BookDocument(null, "BookTitle_2", a2, List.of(g3, g4)));
+        bookRepository.save(new BookDocument(null, "BookTitle_3", a3, List.of(g5, g6)));
     }
 
     @RollbackExecution
