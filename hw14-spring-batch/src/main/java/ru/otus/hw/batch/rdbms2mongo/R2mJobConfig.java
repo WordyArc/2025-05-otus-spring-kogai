@@ -162,38 +162,30 @@ public class R2mJobConfig {
                 .build();
     }
 
-    private Flow authorsFlow() {
-        return new FlowBuilder<SimpleFlow>("authorsFlow")
-                .start(authorsStep())
-                .build();
-    }
-
-    private Flow genresFlow() {
-        return new FlowBuilder<SimpleFlow>("genresFlow")
-                .start(genresStep())
-                .build();
-    }
-
     private Flow parallelAuthorsAndGenres(TaskExecutor taskExecutor) {
         return new FlowBuilder<SimpleFlow>("r2mFlow")
                 .split(taskExecutor)
-                .add(authorsFlow(), genresFlow())
+                .add(flowOf(authorsStep(), genresStep()))
                 .build();
-    }
-
-    private Flow booksFlow() {
-        return new FlowBuilder<SimpleFlow>("booksFlow").start(booksStep()).build();
-    }
-
-    private Flow commentsFlow() {
-        return new FlowBuilder<SimpleFlow>("commentsFlow").start(commentsPartitionedStep()).build();
     }
 
     private Flow parallelBooksAndComments(TaskExecutor exec) {
         return new FlowBuilder<SimpleFlow>("r2mFlow2")
                 .split(exec)
-                .add(booksFlow(), commentsFlow())
+                .add(flowOf(booksStep()), flowOf(commentsPartitionedStep()))
                 .build();
     }
 
+    private Flow flowOf(Step... steps) {
+        if (steps == null || steps.length == 0) {
+            throw new IllegalArgumentException("At least one step is required to build a flow");
+        }
+
+        var flowBuilder = new FlowBuilder<SimpleFlow>(steps[0].getName() + "Flow")
+                .start(steps[0]);
+        for (int i = 1; i < steps.length; i++) {
+            flowBuilder.next(steps[i]);
+        }
+        return flowBuilder.build();
+    }
 }
