@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m;
+package ru.otus.hw.batch.rdbms2mongo;
 
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
