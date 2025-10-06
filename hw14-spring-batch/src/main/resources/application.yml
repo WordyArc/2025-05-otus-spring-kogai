@@ -4,16 +4,11 @@ spring:
       enabled: false
     jdbc:
       initialize-schema: always
-
-  #  profiles:
-  #    active: dev
-
   data:
     mongodb:
       #      database: library
       #      port: 0
       uri: mongodb://localhost:27017/library
-
   datasource:
     url: jdbc:h2:mem:maindb
     driver-class-name: org.h2.Driver
@@ -39,7 +34,6 @@ spring:
     command:
       version:
         enabled: false
-
   h2:
     console:
       enabled: true
@@ -53,7 +47,7 @@ spring:
 
 logging:
   level:
-    io.mongock: debug
+    io.mongock: error
 
 app:
   batch:
@@ -79,12 +73,6 @@ app:
       genres: ${app.batch.chunk-sizes.genres}
       books: ${app.batch.chunk-sizes.books}
       comments: ${app.batch.chunk-sizes.comments}
-
-#de:
-#  flapdoodle:
-#    mongodb:
-#      embedded:
-#        version: 7.0.14
 
 mongock:
   enabled: true
