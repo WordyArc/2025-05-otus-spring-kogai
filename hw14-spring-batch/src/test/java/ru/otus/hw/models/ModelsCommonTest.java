@@ -1,4 +1,4 @@
-package ru.otus.hw.jpa.models;
+package ru.otus.hw.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -28,7 +28,7 @@ class ModelsCommonTest {
 
     @BeforeAll
     static void setUpAll() {
-        var reflections = new Reflections("ru.otus.hw.jpa.models");
+        var reflections = new Reflections("ru.otus.hw.persistence.rdbms.model");
         entitiesClasses = reflections.getTypesAnnotatedWith(Entity.class);
 
     }
