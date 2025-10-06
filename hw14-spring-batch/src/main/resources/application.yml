@@ -65,10 +65,10 @@ app:
       max-pool-size: 8
       queue-capacity: 0
     chunk-sizes:
-      authors: 1000
+      authors: 2000
       genres: 1000
-      books: 5000
-      comments: 10000
+      books: 10000
+      comments: 20000
     progress-listeners:
       authors: 5000
       genres: 200
