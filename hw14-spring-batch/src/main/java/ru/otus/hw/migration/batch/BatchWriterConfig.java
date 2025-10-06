@@ -67,9 +67,9 @@ public class BatchWriterConfig {
 
                 doc.remove("_id");
 
-                var update = new Update();
-                doc.forEach(update::set);
-                //var update = Update.fromDocument(doc);
+                //var update = new Update();
+                //doc.forEach(update::set);
+                var update = Update.fromDocument(new Document("$set", doc));
                 var query = Query.query(Criteria.where("_id").is(id));
                 ops.upsert(query, update);
             }
