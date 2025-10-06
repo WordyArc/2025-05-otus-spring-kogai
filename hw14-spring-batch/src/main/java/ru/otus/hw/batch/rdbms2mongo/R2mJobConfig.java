@@ -15,9 +15,9 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.otus.hw.batch.rdbms2mongo.listener.CommentPartitionInfoListener;
 import ru.otus.hw.persistence.rdbms.model.Author;
 import ru.otus.hw.persistence.rdbms.model.Book;
 import ru.otus.hw.persistence.rdbms.model.Comment;
@@ -39,7 +39,7 @@ public class R2mJobConfig {
 
     private final PlatformTransactionManager transactionManager;
 
-    private final BatchProperties batchProperties;
+    private final BatchProperties props;
 
 
     private final ItemReader<Author> authorReader;
@@ -69,59 +69,12 @@ public class R2mJobConfig {
 
     private final ItemWriter<CommentDocument> commentWriter;
 
-    @Bean
-    JobLoggingListener jobLoggingListener() {
-        return new JobLoggingListener();
-    }
-
-    @Bean
-    StepLoggingListener authorsStepListener() {
-        return new StepLoggingListener("authors");
-    }
-
-    @Bean
-    StepLoggingListener genresStepListener() {
-        return new StepLoggingListener("genres");
-    }
-
-    @Bean
-    StepLoggingListener booksStepListener() {
-        return new StepLoggingListener("books");
-    }
-
-    @Bean
-    StepLoggingListener commentsStepListener() {
-        return new StepLoggingListener("comments");
-    }
-
-    @Bean
-    ThrottledChunkProgressListener authorsProgress() {
-        return new ThrottledChunkProgressListener("authors", 
-                batchProperties.getProgressListeners().getAuthors());
-    }
-
-    @Bean
-    ThrottledChunkProgressListener genresProgress() {
-        return new ThrottledChunkProgressListener("genres", 
-                batchProperties.getProgressListeners().getGenres());
-    }
-
-    @Bean
-    ThrottledChunkProgressListener booksProgress() {
-        return new ThrottledChunkProgressListener("books", 
-                batchProperties.getProgressListeners().getBooks());
-    }
-
-    @Bean
-    ThrottledChunkProgressListener commentsProgress() {
-        return new ThrottledChunkProgressListener("comments", 
-                batchProperties.getProgressListeners().getComments());
-    }
+    private final ItemReader<Comment> partitionedCommentReader;
 
     @Bean
     public TaskExecutor splitExecutor() {
         var threadPool = new ThreadPoolTaskExecutor();
-        var config = batchProperties.getThreadPool();
+        var config = props.getThreadPool();
         threadPool.setThreadNamePrefix(config.getThreadNamePrefix());
         threadPool.setCorePoolSize(config.getCorePoolSize());
         threadPool.setMaxPoolSize(config.getMaxPoolSize());
@@ -133,61 +86,77 @@ public class R2mJobConfig {
     @Bean
     public Step authorsStep() {
         return new StepBuilder("authorsStep", jobRepository)
-                .<Author, AuthorDocument>chunk(batchProperties.getChunkSizes().getAuthors(), transactionManager)
+                .<Author, AuthorDocument>chunk(props.getChunkSizes().getAuthors(), transactionManager)
                 .reader(authorReader)
                 .processor(authorProcessor)
                 .writer(authorWriter)
-                .listener(authorsStepListener())
-                .listener(authorsProgress())
-                .faultTolerant()
-                .retry(DataAccessResourceFailureException.class)
-                .retryLimit(3)
+                .listener(new StepLoggingListener("authors"))
+                .listener(new ThrottledChunkProgressListener("authors",
+                        props.getProgressListeners().getAuthors())
+                )
                 .build();
     }
 
     @Bean
     public Step genresStep() {
         return new StepBuilder("genresStep", jobRepository)
-                .<Genre, GenreDocument>chunk(batchProperties.getChunkSizes().getGenres(), transactionManager)
+                .<Genre, GenreDocument>chunk(props.getChunkSizes().getGenres(), transactionManager)
                 .reader(genreReader)
                 .processor(genreProcessor)
                 .writer(genreWriter)
-                .listener(genresStepListener())
-                .listener(genresProgress())
+                .listener(new StepLoggingListener("genres"))
+                .listener(new ThrottledChunkProgressListener("genres",
+                        props.getProgressListeners().getGenres())
+                )
                 .build();
     }
 
     @Bean
     public Step booksStep() {
         return new StepBuilder("booksStep", jobRepository)
-                .<Book, BookDocument>chunk(batchProperties.getChunkSizes().getBooks(), transactionManager)
+                .<Book, BookDocument>chunk(props.getChunkSizes().getBooks(), transactionManager)
                 .reader(bookReader)
                 .processor(bookProcessor)
                 .writer(bookWriter)
-                .listener(booksStepListener())
-                .listener(booksProgress())
+                .listener(new StepLoggingListener("books"))
+                .listener(new ThrottledChunkProgressListener("books",
+                        props.getProgressListeners().getBooks())
+                )
                 .build();
     }
 
     @Bean
-    public Step commentsStep() {
-        return new StepBuilder("commentsStep", jobRepository)
-                .<Comment, CommentDocument>chunk(batchProperties.getChunkSizes().getComments(), transactionManager)
-                .reader(commentReader)
+    public Step commentsWorkerStep() {
+        return new StepBuilder("commentsWorker", jobRepository)
+                .<Comment, CommentDocument>chunk(props.getChunkSizes().getComments(), transactionManager)
+                .reader(partitionedCommentReader)
                 .processor(commentProcessor)
                 .writer(commentWriter)
-                .listener(commentsStepListener())
-                .listener(commentsProgress())
+                .listener(new CommentPartitionInfoListener())
+                .listener(new StepLoggingListener("comments"))
+                .listener(new ThrottledChunkProgressListener("comments",
+                        props.getProgressListeners().getComments())
+                )
                 .build();
     }
+
+    @Bean
+    public Step commentsPartitionedStep() {
+        int partitions = Math.max(1, props.getThreadPool().getCorePoolSize());
+        return new StepBuilder("commentsPartitioned", jobRepository)
+                .partitioner("commentsWorker", new RoundRobinPartitioner(partitions))
+                .step(commentsWorkerStep())
+                .gridSize(partitions)
+                .taskExecutor(splitExecutor())
+                .build();
+    }
+
 
     @Bean
     public Job rdbmsToMongoJob() {
         return new JobBuilder("rdbmsToMongoJob", jobRepository)
-                .listener(jobLoggingListener())
+                .listener(new JobLoggingListener())
                 .start(parallelAuthorsAndGenres(splitExecutor()))
-//                .next(booksStep())
-//                .next(commentsStep())
                 .next(parallelBooksAndComments(splitExecutor()))
                 .end()
                 .build();
@@ -217,7 +186,7 @@ public class R2mJobConfig {
     }
 
     private Flow commentsFlow() {
-        return new FlowBuilder<SimpleFlow>("commentsFlow").start(commentsStep()).build();
+        return new FlowBuilder<SimpleFlow>("commentsFlow").start(commentsPartitionedStep()).build();
     }
 
     private Flow parallelBooksAndComments(TaskExecutor exec) {
@@ -228,4 +197,3 @@ public class R2mJobConfig {
     }
 
 }
-
