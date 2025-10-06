@@ -115,8 +115,8 @@ public class RdbmsToMongoJobConfig {
     public TaskExecutor splitExecutor() {
         var threadPool = new ThreadPoolTaskExecutor();
         threadPool.setThreadNamePrefix("batch-");
-        threadPool.setCorePoolSize(2);
-        threadPool.setMaxPoolSize(2);
+        threadPool.setCorePoolSize(4);
+        threadPool.setMaxPoolSize(8);
         threadPool.setQueueCapacity(0);
         threadPool.initialize();
         return threadPool;
@@ -164,7 +164,7 @@ public class RdbmsToMongoJobConfig {
     @Bean
     public Step commentsStep() {
         return new StepBuilder("commentsStep", jobRepository)
-                .<Comment, CommentDocument>chunk(1000, transactionManager)
+                .<Comment, CommentDocument>chunk(5000, transactionManager)
                 .reader(commentReader)
                 .processor(commentProcessor)
                 .writer(commentWriter)
@@ -178,8 +178,9 @@ public class RdbmsToMongoJobConfig {
         return new JobBuilder("rdbmsToMongoJob", jobRepository)
                 .listener(jobLoggingListener())
                 .start(parallelAuthorsAndGenres(splitExecutor()))
-                .next(booksStep())
-                .next(commentsStep())
+//                .next(booksStep())
+//                .next(commentsStep())
+                .next(parallelBooksAndComments(splitExecutor()))
                 .end()
                 .build();
     }
@@ -200,6 +201,21 @@ public class RdbmsToMongoJobConfig {
         return new FlowBuilder<SimpleFlow>("r2mFlow")
                 .split(taskExecutor)
                 .add(authorsFlow(), genresFlow())
+                .build();
+    }
+
+    private Flow booksFlow() {
+        return new FlowBuilder<SimpleFlow>("booksFlow").start(booksStep()).build();
+    }
+
+    private Flow commentsFlow() {
+        return new FlowBuilder<SimpleFlow>("commentsFlow").start(commentsStep()).build();
+    }
+
+    private Flow parallelBooksAndComments(TaskExecutor exec) {
+        return new FlowBuilder<SimpleFlow>("r2mFlow2")
+                .split(exec)
+                .add(booksFlow(), commentsFlow())
                 .build();
     }
 
