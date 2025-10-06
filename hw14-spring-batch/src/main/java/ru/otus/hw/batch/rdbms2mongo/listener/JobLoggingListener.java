@@ -5,6 +5,9 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.StepExecution;
 
+import java.util.Collection;
+import java.util.function.ToLongFunction;
+
 @Slf4j
 public class JobLoggingListener implements JobExecutionListener {
 
@@ -18,22 +21,24 @@ public class JobLoggingListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution job) {
-        int read = 0, written = 0, filtered = 0, rSkips = 0, wSkips = 0, commits = 0, rollbacks = 0;
-        for (StepExecution s : job.getStepExecutions()) {
-            read += s.getReadCount();
-            written += s.getWriteCount();
-            filtered += s.getFilterCount();
-            rSkips += s.getReadSkipCount();
-            wSkips += s.getWriteSkipCount();
-            commits += s.getCommitCount();
-            rollbacks += s.getRollbackCount();
-        }
-        log.info("JOB END   name={} id={} status={} exitCode={} " +
+        var steps = job.getStepExecutions();
+
+        log.info("JOB END name={} id={} status={} exitCode={} " +
                         "read={} written={} filtered={} skips(R/W)={}/{} commits={} rollbacks={}",
                 job.getJobInstance().getJobName(),
                 job.getId(),
                 job.getStatus(),
                 job.getExitStatus().getExitCode(),
-                read, written, filtered, rSkips, wSkips, commits, rollbacks);
+                sum(steps, StepExecution::getReadCount),
+                sum(steps, StepExecution::getWriteCount),
+                sum(steps, StepExecution::getFilterCount),
+                sum(steps, StepExecution::getReadSkipCount),
+                sum(steps, StepExecution::getWriteSkipCount),
+                sum(steps, StepExecution::getCommitCount),
+                sum(steps, StepExecution::getRollbackCount));
+    }
+
+    private long sum(Collection<StepExecution> steps, ToLongFunction<StepExecution> mapper) {
+        return steps.stream().mapToLong(mapper).sum();
     }
 }
