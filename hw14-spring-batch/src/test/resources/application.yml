@@ -83,5 +83,6 @@ de:
 
 mongock:
   enabled: true
+  transactional: false
   migration-scan-package:
     - ru.otus.hw.db.mongo.migration
