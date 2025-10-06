@@ -7,12 +7,15 @@ import org.springframework.batch.item.database.JpaCursorItemReader;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.otus.hw.persistence.rdbms.model.Author;
 import ru.otus.hw.persistence.rdbms.model.Book;
 import ru.otus.hw.persistence.rdbms.model.Comment;
 import ru.otus.hw.persistence.rdbms.model.Genre;
+
+import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
@@ -67,6 +70,29 @@ public class R2mReadersConfig {
                 .name("commentReader")
                 .entityManagerFactory(emf)
                 .queryString("select c from Comment c order by c.id")
+                .saveState(true)
+                .build();
+    }
+
+    @Bean
+    @StepScope
+    public JpaPagingItemReader<Comment> partitionedCommentReader(
+            EntityManagerFactory emf,
+            @Value("#{stepExecutionContext['" + RoundRobinPartitioner.MODULUS_KEY + "']}") Integer modulus,
+            @Value("#{stepExecutionContext['" + RoundRobinPartitioner.REMAINDER_KEY + "']}") Integer remainder
+    ) {
+
+        return new JpaPagingItemReaderBuilder<Comment>()
+                .name("commentReader-p" + remainder)
+                .entityManagerFactory(emf)
+                .queryString("""
+                        select c
+                        from Comment c
+                        where mod(c.id, :m) = :r
+                        order by c.id
+                        """)
+                .parameterValues(Map.of("m", modulus, "r", remainder))
+                .pageSize(1000)
                 .saveState(true)
                 .build();
     }
