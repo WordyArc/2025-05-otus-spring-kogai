@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m.idmap;
+package ru.otus.hw.batch.rdbms2mongo.idmap;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

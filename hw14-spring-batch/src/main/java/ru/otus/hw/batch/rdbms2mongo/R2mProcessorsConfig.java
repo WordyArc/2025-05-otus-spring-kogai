@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m;
+package ru.otus.hw.batch.rdbms2mongo;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.configuration.annotation.StepScope;
@@ -9,10 +9,10 @@ import ru.otus.hw.persistence.rdbms.model.Author;
 import ru.otus.hw.persistence.rdbms.model.Book;
 import ru.otus.hw.persistence.rdbms.model.Comment;
 import ru.otus.hw.persistence.rdbms.model.Genre;
-import ru.otus.hw.batch.r2m.mapper.AuthorMapper;
-import ru.otus.hw.batch.r2m.mapper.BookMapper;
-import ru.otus.hw.batch.r2m.mapper.CommentMapper;
-import ru.otus.hw.batch.r2m.mapper.GenreMapper;
+import ru.otus.hw.batch.rdbms2mongo.mapper.AuthorMapper;
+import ru.otus.hw.batch.rdbms2mongo.mapper.BookMapper;
+import ru.otus.hw.batch.rdbms2mongo.mapper.CommentMapper;
+import ru.otus.hw.batch.rdbms2mongo.mapper.GenreMapper;
 import ru.otus.hw.persistence.mongo.model.AuthorDocument;
 import ru.otus.hw.persistence.mongo.model.BookDocument;
 import ru.otus.hw.persistence.mongo.model.CommentDocument;
