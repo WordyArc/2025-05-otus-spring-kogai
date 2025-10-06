@@ -55,6 +55,26 @@ logging:
   level:
     io.mongock: debug
 
+app:
+  batch:
+    id-mapping-cache:
+      maximum-size: 500000
+    thread-pool:
+      thread-name-prefix: batch-
+      core-pool-size: 4
+      max-pool-size: 8
+      queue-capacity: 0
+    chunk-sizes:
+      authors: 1000
+      genres: 1000
+      books: 5000
+      comments: 10000
+    progress-listeners:
+      authors: 5000
+      genres: 200
+      books: 10000
+      comments: 20000
+
 #de:
 #  flapdoodle:
 #    mongodb:

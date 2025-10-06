@@ -25,6 +25,7 @@ import ru.otus.hw.persistence.rdbms.model.Genre;
 import ru.otus.hw.batch.r2m.listener.JobLoggingListener;
 import ru.otus.hw.batch.r2m.listener.StepLoggingListener;
 import ru.otus.hw.batch.r2m.listener.ThrottledChunkProgressListener;
+import ru.otus.hw.config.BatchProperties;
 import ru.otus.hw.persistence.mongo.model.AuthorDocument;
 import ru.otus.hw.persistence.mongo.model.BookDocument;
 import ru.otus.hw.persistence.mongo.model.CommentDocument;
@@ -37,6 +38,8 @@ public class R2mJobConfig {
     private final JobRepository jobRepository;
 
     private final PlatformTransactionManager transactionManager;
+
+    private final BatchProperties batchProperties;
 
 
     private final ItemReader<Author> authorReader;
@@ -93,31 +96,36 @@ public class R2mJobConfig {
 
     @Bean
     ThrottledChunkProgressListener authorsProgress() {
-        return new ThrottledChunkProgressListener("authors", 5_000);
+        return new ThrottledChunkProgressListener("authors", 
+                batchProperties.getProgressListeners().getAuthors());
     }
 
     @Bean
     ThrottledChunkProgressListener genresProgress() {
-        return new ThrottledChunkProgressListener("genres", 200);
+        return new ThrottledChunkProgressListener("genres", 
+                batchProperties.getProgressListeners().getGenres());
     }
 
     @Bean
     ThrottledChunkProgressListener booksProgress() {
-        return new ThrottledChunkProgressListener("books", 10_000);
+        return new ThrottledChunkProgressListener("books", 
+                batchProperties.getProgressListeners().getBooks());
     }
 
     @Bean
     ThrottledChunkProgressListener commentsProgress() {
-        return new ThrottledChunkProgressListener("comments", 20_000);
+        return new ThrottledChunkProgressListener("comments", 
+                batchProperties.getProgressListeners().getComments());
     }
 
     @Bean
     public TaskExecutor splitExecutor() {
         var threadPool = new ThreadPoolTaskExecutor();
-        threadPool.setThreadNamePrefix("batch-");
-        threadPool.setCorePoolSize(4);
-        threadPool.setMaxPoolSize(8);
-        threadPool.setQueueCapacity(0);
+        var config = batchProperties.getThreadPool();
+        threadPool.setThreadNamePrefix(config.getThreadNamePrefix());
+        threadPool.setCorePoolSize(config.getCorePoolSize());
+        threadPool.setMaxPoolSize(config.getMaxPoolSize());
+        threadPool.setQueueCapacity(config.getQueueCapacity());
         threadPool.initialize();
         return threadPool;
     }
@@ -125,7 +133,7 @@ public class R2mJobConfig {
     @Bean
     public Step authorsStep() {
         return new StepBuilder("authorsStep", jobRepository)
-                .<Author, AuthorDocument>chunk(500, transactionManager)
+                .<Author, AuthorDocument>chunk(batchProperties.getChunkSizes().getAuthors(), transactionManager)
                 .reader(authorReader)
                 .processor(authorProcessor)
                 .writer(authorWriter)
@@ -140,7 +148,7 @@ public class R2mJobConfig {
     @Bean
     public Step genresStep() {
         return new StepBuilder("genresStep", jobRepository)
-                .<Genre, GenreDocument>chunk(1000, transactionManager)
+                .<Genre, GenreDocument>chunk(batchProperties.getChunkSizes().getGenres(), transactionManager)
                 .reader(genreReader)
                 .processor(genreProcessor)
                 .writer(genreWriter)
@@ -152,7 +160,7 @@ public class R2mJobConfig {
     @Bean
     public Step booksStep() {
         return new StepBuilder("booksStep", jobRepository)
-                .<Book, BookDocument>chunk(200, transactionManager)
+                .<Book, BookDocument>chunk(batchProperties.getChunkSizes().getBooks(), transactionManager)
                 .reader(bookReader)
                 .processor(bookProcessor)
                 .writer(bookWriter)
@@ -164,7 +172,7 @@ public class R2mJobConfig {
     @Bean
     public Step commentsStep() {
         return new StepBuilder("commentsStep", jobRepository)
-                .<Comment, CommentDocument>chunk(5000, transactionManager)
+                .<Comment, CommentDocument>chunk(batchProperties.getChunkSizes().getComments(), transactionManager)
                 .reader(commentReader)
                 .processor(commentProcessor)
                 .writer(commentWriter)
