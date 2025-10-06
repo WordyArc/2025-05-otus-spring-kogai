@@ -66,5 +66,4 @@ mongock:
   transactional: false
   runner-type: initializingbean
   migration-scan-package:
-    - ru.otus.hw.mongo.migrations
-    - ru.otus.hw.migration.migrations
+    - ru.otus.hw.db.mongo.migration
