@@ -4,6 +4,9 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Data
 @Component
 @ConfigurationProperties(prefix = "app.batch")
@@ -20,6 +23,7 @@ public class BatchProperties {
     @Data
     public static class IdMappingCache {
         private long maximumSize = 500_000;
+        private Map<String, Long> perType = new HashMap<>();
     }
 
     @Data

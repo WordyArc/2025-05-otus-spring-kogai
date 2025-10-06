@@ -5,13 +5,13 @@ spring:
     jdbc:
       initialize-schema: always
 
-#  profiles:
-#    active: dev
+  #  profiles:
+  #    active: dev
 
   data:
     mongodb:
-#      database: library
-#      port: 0
+      #      database: library
+      #      port: 0
       uri: mongodb://localhost:27017/library
 
   datasource:
@@ -59,6 +59,11 @@ app:
   batch:
     id-mapping-cache:
       maximum-size: 500000
+      per-type:
+        author: 20000
+        genre: 1000
+        book: 100000
+        comment: 250000
     thread-pool:
       thread-name-prefix: batch-
       core-pool-size: 4
