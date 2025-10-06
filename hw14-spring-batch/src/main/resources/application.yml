@@ -19,13 +19,16 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+    hikari:
+      maximum-pool-size: 16
   jpa:
     hibernate:
       ddl-auto: none
     properties:
       hibernate:
         format_sql: true
-        default_batch_fetch_size: 50
+        jdbc.fetch_size: 1000
+        default_batch_fetch_size: 200
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/db.changelog-master.xml

@@ -64,7 +64,7 @@ public class Book {
     @JoinTable(name = "books_genres",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id"))
-    @BatchSize(size = 50)
+    @BatchSize(size = 200)
     private List<Genre> genres = new ArrayList<>();
 
     @Override
