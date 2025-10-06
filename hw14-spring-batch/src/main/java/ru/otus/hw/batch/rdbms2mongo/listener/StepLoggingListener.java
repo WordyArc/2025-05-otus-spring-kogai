@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m.listener;
+package ru.otus.hw.batch.rdbms2mongo.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

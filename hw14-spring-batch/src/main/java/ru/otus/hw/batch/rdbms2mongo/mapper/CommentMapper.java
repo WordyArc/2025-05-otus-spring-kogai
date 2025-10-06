@@ -1,9 +1,9 @@
-package ru.otus.hw.batch.r2m.mapper;
+package ru.otus.hw.batch.rdbms2mongo.mapper;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.otus.hw.persistence.rdbms.model.Comment;
-import ru.otus.hw.batch.r2m.idmap.IdMappingService;
+import ru.otus.hw.batch.rdbms2mongo.idmap.IdMappingService;
 import ru.otus.hw.persistence.mongo.model.CommentDocument;
 
 @Service

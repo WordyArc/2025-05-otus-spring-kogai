@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m;
+package ru.otus.hw.batch.rdbms2mongo;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -22,9 +22,9 @@ import ru.otus.hw.persistence.rdbms.model.Author;
 import ru.otus.hw.persistence.rdbms.model.Book;
 import ru.otus.hw.persistence.rdbms.model.Comment;
 import ru.otus.hw.persistence.rdbms.model.Genre;
-import ru.otus.hw.batch.r2m.listener.JobLoggingListener;
-import ru.otus.hw.batch.r2m.listener.StepLoggingListener;
-import ru.otus.hw.batch.r2m.listener.ThrottledChunkProgressListener;
+import ru.otus.hw.batch.rdbms2mongo.listener.JobLoggingListener;
+import ru.otus.hw.batch.rdbms2mongo.listener.StepLoggingListener;
+import ru.otus.hw.batch.rdbms2mongo.listener.ThrottledChunkProgressListener;
 import ru.otus.hw.config.BatchProperties;
 import ru.otus.hw.persistence.mongo.model.AuthorDocument;
 import ru.otus.hw.persistence.mongo.model.BookDocument;

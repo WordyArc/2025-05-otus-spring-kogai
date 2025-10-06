@@ -1,4 +1,4 @@
-package ru.otus.hw.batch.r2m.idmap;
+package ru.otus.hw.batch.rdbms2mongo.idmap;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
