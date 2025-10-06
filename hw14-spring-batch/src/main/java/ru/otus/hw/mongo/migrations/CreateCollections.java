@@ -64,7 +64,7 @@ public class CreateCollections {
     private void createCommentsCollection() {
         var props = new Document()
                 .append("text", stringSchema(1))
-                .append("bookId", stringSchema(1))
+                .append("bookId", objectIdOrString())
                 .append("createdAt", dateSchema());
         var schema = MigrationUtils.objectSchema(props, "text", "bookId", "createdAt");
         apply(C_COMMENTS, schema);
@@ -76,6 +76,10 @@ public class CreateCollections {
 
     private static Document stringSchema(int minLength) {
         return new Document("bsonType", "string").append("minLength", minLength);
+    }
+
+    private static Document objectIdOrString() {
+        return new Document("bsonType", List.of("objectId", "string"));
     }
 
     private static Document dateSchema() {
