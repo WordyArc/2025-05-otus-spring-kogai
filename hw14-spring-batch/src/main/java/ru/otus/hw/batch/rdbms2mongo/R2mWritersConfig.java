@@ -50,7 +50,9 @@ public class R2mWritersConfig {
     private <T> ItemWriter<T> bulkUpsert(String collection) {
         return chunk -> {
             var items = chunk.getItems();
-            if (items.isEmpty()) return;
+            if (items.isEmpty()) {
+                return;
+            }
 
             BulkOperations ops = operations.bulkOps(BulkOperations.BulkMode.UNORDERED, collection);
 
