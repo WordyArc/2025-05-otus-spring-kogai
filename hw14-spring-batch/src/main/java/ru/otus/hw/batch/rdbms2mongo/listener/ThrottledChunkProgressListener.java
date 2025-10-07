@@ -3,7 +3,6 @@ package ru.otus.hw.batch.rdbms2mongo.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.scope.context.ChunkContext;
 
 @Slf4j
