@@ -13,6 +13,7 @@ import java.util.Map;
 public class RoundRobinPartitioner implements Partitioner {
 
     public static final String MODULUS_KEY = "modulus";
+
     public static final String REMAINDER_KEY = "remainder";
 
     private final int partitions;

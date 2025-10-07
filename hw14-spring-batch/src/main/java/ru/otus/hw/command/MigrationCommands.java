@@ -56,7 +56,8 @@ public class MigrationCommands {
     public String mongoClean() {
         var targetCollections = List.of("authors", "genres", "books", "comments", "id_mappings");
 
-        int dropped = 0, skipped = 0;
+        int dropped = 0;
+        int skipped = 0;
         for (String c : targetCollections) {
             if (MongoMigrationUtils.collectionExists(mongo, c)) {
                 mongo.dropCollection(c);
