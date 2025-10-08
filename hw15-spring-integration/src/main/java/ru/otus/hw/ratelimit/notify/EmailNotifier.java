@@ -7,7 +7,8 @@ import ru.otus.hw.ratelimit.domain.Incident;
 @Slf4j
 @Component
 public class EmailNotifier implements Notifier {
-    @Override public void notify(Incident inc) {
+    @Override
+    public void notify(Incident inc) {
         log.info("[EMAIL] Incident {} for key {} ({} events)", inc.id(), inc.correlationKey(), inc.count());
     }
 }

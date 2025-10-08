@@ -21,7 +21,9 @@ import java.time.Instant;
 @RequestMapping("/logs")
 @RequiredArgsConstructor
 public class LogController {
+
     private final LogGateway gateway;
+
     private final Clock clock;
 
     public record LogEventDto(String timestamp,
