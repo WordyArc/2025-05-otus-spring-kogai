@@ -43,6 +43,7 @@ public class IntegrationConfig {
                         HDR_CORR,
                         message -> keyResolver.resolve((LogEvent) message.getPayload()))
                 )
+                .<LogEvent>filter(event -> event.status() == 429 || event.status() >= 500)
                 .aggregate(a -> a
                         .messageStore(store)
                         .correlationStrategy(message -> message.getHeaders().get(HDR_CORR))
