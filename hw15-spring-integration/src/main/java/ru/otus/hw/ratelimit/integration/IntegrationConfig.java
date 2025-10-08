@@ -38,11 +38,12 @@ public class IntegrationConfig {
                                   Clock clock
     ) {
         return flow -> flow
-                .log(LoggingHandler.Level.DEBUG, message -> "LogEvent in: " + message.getPayload())
                 .enrichHeaders(spec -> spec.headerFunction(
                         HDR_CORR,
                         message -> keyResolver.resolve((LogEvent) message.getPayload()))
                 )
+                .log(LoggingHandler.Level.DEBUG,
+                        m -> "LogEvent in [" + m.getHeaders().get(HDR_CORR) + "]: " + m.getPayload())
                 .<LogEvent>filter(event -> event.status() == 429 || event.status() >= 500)
                 .aggregate(a -> a
                         .messageStore(store)
