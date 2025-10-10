@@ -13,11 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Aspect for monitoring service layer operations.
- * Note: This aspect monitors traditional service layer calls.
- * For Spring Data REST operations, see {@link RepositoryEventMetricsHandler}.
- */
 @Aspect
 @Component
 public class MetricsAspect {

@@ -1,10 +1,20 @@
 spring:
+  application:
+    name: library-service
+
+  data:
+    rest:
+      base-path: /datarest
+      default-media-type: application/hal+json
+      return-body-on-create: true
+      return-body-on-update: true
+      detection-strategy: annotated
+
   datasource:
     url: jdbc:h2:mem:testdb-${random.uuid};DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
     username: sa
     password: ""
-
   jpa:
     hibernate:
       ddl-auto: none
@@ -23,3 +33,22 @@ spring:
       mode: never
       data-locations: []
       schema-locations: []
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,logfile,loggers,threaddump,httptrace
+      base-path: /actuator
+    logfile:
+      enabled: true
+      external-file: ${logging.file.name}
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
