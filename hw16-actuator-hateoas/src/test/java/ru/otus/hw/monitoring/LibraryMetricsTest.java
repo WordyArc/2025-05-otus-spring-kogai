@@ -65,11 +65,9 @@ class LibraryMetricsTest {
         @Test
         @DisplayName("should track total books count via gauge")
         void shouldTrackBooksCount() {
-            // When
             createBook("Book 1");
             createBook("Book 2");
 
-            // Then
             Gauge gauge = findGauge("library.books.total");
 
             assertThat(gauge).isNotNull();
@@ -79,10 +77,8 @@ class LibraryMetricsTest {
         @Test
         @DisplayName("should track total authors count via gauge")
         void shouldTrackAuthorsCount() {
-            // When
             createAuthor("Another Author");
 
-            // Then
             Gauge gauge = findGauge("library.authors.total");
 
             assertThat(gauge).isNotNull();
@@ -92,10 +88,8 @@ class LibraryMetricsTest {
         @Test
         @DisplayName("should track total genres count via gauge")
         void shouldTrackGenresCount() {
-            // When
             createGenre("Another Genre");
 
-            // Then
             Gauge gauge = findGauge("library.genres.total");
 
             assertThat(gauge).isNotNull();
@@ -105,12 +99,10 @@ class LibraryMetricsTest {
         @Test
         @DisplayName("should track total comments count via gauge")
         void shouldTrackCommentsCount() {
-            // When
             var book = createBook("Book");
             createComment("Comment 1", book);
             createComment("Comment 2", book);
 
-            // Then
             Gauge gauge = findGauge("library.comments.total");
 
             assertThat(gauge).isNotNull();
@@ -120,26 +112,20 @@ class LibraryMetricsTest {
         @Test
         @DisplayName("should update gauge value when books are deleted")
         void shouldUpdateGaugeOnDelete() {
-            // Given
             var book1 = createBook("Book 1");
             createBook("Book 2");
 
             Gauge gauge = findGauge("library.books.total");
             assertThat(gauge.value()).isEqualTo(2.0);
 
-            // When
             deleteBook(book1);
 
-            // Then
             assertThat(gauge.value()).isEqualTo(1.0);
         }
 
         @Test
         @DisplayName("should start with correct initial counts")
         void shouldStartWithCorrectCounts() {
-            // Given
-
-            // Then
             assertGaugeValue("library.books.total", 0.0);
             assertGaugeValue("library.authors.total", 1.0);
             assertGaugeValue("library.genres.total", 1.0);
