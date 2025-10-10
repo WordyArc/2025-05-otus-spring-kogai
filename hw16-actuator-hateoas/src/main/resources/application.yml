@@ -24,8 +24,45 @@ spring:
     init:
       mode: always
       data-locations: classpath:/data.sql
-      schema-locations: []
+      schema-locations: [ ]
   h2:
     console:
       enabled: true
       path: /h2-console
+
+logging:
+  file:
+    name: app/logs/application.log
+
+info:
+  app:
+    name: hw16-actuator-hateoas
+    description: "Library service"
+
+management:
+  server:
+    port: 8081
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,logfile,loggers,threaddump,env
+  endpoint:
+    health:
+      show-details: always
+    logfile:
+      enabled: true
+      external-file: ${logging.file.name}
+    group:
+      readiness:
+        include: readinessState, db, domain
+      liveness:
+        include: livenessState
+  metrics:
+    tags:
+      application: hw16-actuator-hateoas
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
