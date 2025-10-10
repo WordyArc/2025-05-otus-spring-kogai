@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
-
 import org.springframework.stereotype.Component;
 
 @Aspect
@@ -22,9 +21,11 @@ public class MetricsAspect {
         this.registry = registry;
         this.booksCreated = Counter.builder("library.books.created")
                 .description("Number of books created")
+                .tag("type", "entity")
                 .register(registry);
         this.commentsCreated = Counter.builder("library.comments.created")
                 .description("Number of comments created")
+                .tag("type", "entity")
                 .register(registry);
     }
 

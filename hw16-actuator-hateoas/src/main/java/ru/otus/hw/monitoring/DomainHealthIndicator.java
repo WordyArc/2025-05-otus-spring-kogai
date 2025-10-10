@@ -27,14 +27,23 @@ public class DomainHealthIndicator implements HealthIndicator {
             long authors = authorRepository.count();
             long genres = genreRepository.count();
 
-            var builder = (authors > 0 && genres > 0 && books > 0) ? Health.up() : Health.outOfService();
+            boolean isHealthy = authors > 0 && genres > 0 && books > 0;
+            var builder = isHealthy ? Health.up() : Health.outOfService();
+            
             return builder
                     .withDetail("authors", authors)
                     .withDetail("genres", genres)
                     .withDetail("books", books)
+                    .withDetail("status", isHealthy ? "Domain data is present" : "Domain data is missing")
+                    .withDetail("minRequiredAuthors", 1)
+                    .withDetail("minRequiredGenres", 1)
+                    .withDetail("minRequiredBooks", 1)
                     .build();
         } catch (Exception e) {
-            return Health.down(e).build();
+            return Health.down()
+                    .withDetail("error", "Failed to check domain health")
+                    .withException(e)
+                    .build();
         }
     }
 }
