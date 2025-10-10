@@ -31,30 +31,37 @@ public class DomainHealthIndicator implements HealthIndicator {
     @Transactional(readOnly = true)
     public Health health() {
         try {
-            long books = bookRepository.count();
-            long authors = authorRepository.count();
-            long genres = genreRepository.count();
-
-            boolean hasMinimumAuthors = authors >= MIN_AUTHORS;
-            boolean hasMinimumGenres = genres >= MIN_GENRES;
-            boolean hasMinimumBooks = books >= MIN_BOOKS;
-            boolean isHealthy = hasMinimumAuthors && hasMinimumGenres && hasMinimumBooks;
-
-            var builder = isHealthy ? Health.up() : Health.outOfService();
-            
-            return builder
-                    .withDetail("authors", authors)
-                    .withDetail("genres", genres)
-                    .withDetail("books", books)
-                    .withDetail("status", isHealthy ? "Domain data is present" : "Domain data is missing")
-                    .build();
+            return buildDomainHealth(
+                    authorRepository.count(),
+                    genreRepository.count(),
+                    bookRepository.count()
+            );
         } catch (Exception e) {
-            log.error("Failed to check domain health", e);
-            return Health.down()
-                    .withDetail("error", "Failed to check domain health")
-                    .withDetail("message", e.getMessage())
-                    .withException(e)
-                    .build();
+            return domainCheckFailed(e);
         }
+    }
+
+    private Health buildDomainHealth(long authors, long genres, long books) {
+        boolean hasMinimumAuthors = authors >= MIN_AUTHORS;
+        boolean hasMinimumGenres = genres >= MIN_GENRES;
+        boolean hasMinimumBooks = books >= MIN_BOOKS;
+        boolean isHealthy = hasMinimumAuthors && hasMinimumGenres && hasMinimumBooks;
+
+        var builder = isHealthy ? Health.up() : Health.outOfService();
+        return builder
+                .withDetail("authors", authors)
+                .withDetail("genres", genres)
+                .withDetail("books", books)
+                .withDetail("status", isHealthy ? "Domain data is present" : "Domain data is missing")
+                .build();
+    }
+
+    private Health domainCheckFailed(Exception e) {
+        log.error("Failed to check domain health", e);
+        return Health.down()
+                .withDetail("error", "Failed to check domain health")
+                .withDetail("message", e.getMessage())
+                .withException(e)
+                .build();
     }
 }
