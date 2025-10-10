@@ -11,6 +11,8 @@ import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
 import ru.otus.hw.repositories.GenreRepository;
 
+import java.util.function.Supplier;
+
 
 @Slf4j
 @Component
@@ -27,54 +29,40 @@ public class LibraryMetrics implements MeterBinder {
 
     @Override
     public void bindTo(MeterRegistry registry) {
-        Gauge.builder("library.books.total", bookRepository, repo -> {
-            try {
-                return repo.count();
-            } catch (Exception e) {
-                log.error("Failed to get books count", e);
-                return 0;
-            }
-        })
-        .description("Total number of books in the library")
-        .tag("entity", "book")
-        .register(registry);
-
-        Gauge.builder("library.authors.total", authorRepository, repo -> {
-            try {
-                return repo.count();
-            } catch (Exception e) {
-                log.error("Failed to get authors count", e);
-                return 0;
-            }
-        })
-        .description("Total number of authors in the library")
-        .tag("entity", "author")
-        .register(registry);
-
-        Gauge.builder("library.genres.total", genreRepository, repo -> {
-            try {
-                return repo.count();
-            } catch (Exception e) {
-                log.error("Failed to get genres count", e);
-                return 0;
-            }
-        })
-        .description("Total number of genres in the library")
-        .tag("entity", "genre")
-        .register(registry);
-
-        Gauge.builder("library.comments.total", commentRepository, repo -> {
-            try {
-                return repo.count();
-            } catch (Exception e) {
-                log.error("Failed to get comments count", e);
-                return 0;
-            }
-        })
-        .description("Total number of comments in the library")
-        .tag("entity", "comment")
-        .register(registry);
-        
+        registerLibraryMetrics(registry);
         log.info("Library custom metrics registered successfully");
+    }
+
+    private void registerLibraryMetrics(MeterRegistry registry) {
+        registerCountGauge(registry, "library.books.total", "book",
+                "Total number of books in the library", bookRepository::count);
+        registerCountGauge(registry, "library.authors.total", "author",
+                "Total number of authors in the library", authorRepository::count);
+        registerCountGauge(registry, "library.genres.total", "genre",
+                "Total number of genres in the library", genreRepository::count);
+        registerCountGauge(registry, "library.comments.total", "comment",
+                "Total number of comments in the library", commentRepository::count);
+    }
+
+    private void registerCountGauge(
+            MeterRegistry registry,
+            String metricName,
+            String entity,
+            String description,
+            Supplier<Long> countSupplier
+    ) {
+        Gauge.builder(metricName, () -> safeCount(countSupplier, entity))
+                .description(description)
+                .tag("entity", entity)
+                .register(registry);
+    }
+
+    private double safeCount(Supplier<Long> countSupplier, String entity) {
+        try {
+            return countSupplier.get();
+        } catch (Exception e) {
+            log.error("Failed to get {} count", entity, e);
+            return 0;
+        }
     }
 }
