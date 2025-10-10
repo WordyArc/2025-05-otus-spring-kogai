@@ -64,6 +64,9 @@ management:
     logfile:
       enabled: true
       external-file: ${logging.file.name}
+  endpoint:
+    health:
+      show-details: always
   
   metrics:
     tags:

@@ -138,3 +138,8 @@ curl http://localhost:8081/actuator/metrics/library.comments.total
 ```bash
 curl http://localhost:8081/actuator/metrics | jq '.names[] | select(startswith("library"))'
 ```
+
+### Health
+```bash
+curl http://localhost:8081/actuator/health
+```
