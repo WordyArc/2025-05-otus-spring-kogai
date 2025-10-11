@@ -39,12 +39,13 @@ spring:
     change-log: classpath:/db/changelog/db.changelog-master.xml
   sql:
     init:
+      platform: postgresql
       mode: always
-      data-locations: classpath:/data.sql
+      data-locations: classpath:/data-postgresql.sql
       schema-locations: [ ]
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
 
 logging:
