@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::body}, 'Book form')}">
+<head><title>Book form</title></head>
+<body>
+<h1 id="formTitle">Create book</h1>
+
+<form id="bookForm">
+    <input type="hidden" id="bookId"/>
+
+    <div class="form-row">
+        <label for="title">Title</label>
+        <input id="title" class="input" type="text"/>
+        <div class="error" id="errTitle" style="display:none;"></div>
+    </div>
+
+    <div class="form-row">
+        <label for="authorId">Author</label>
+        <select id="authorId" class="input">
+            <option value="" disabled selected>- select -</option>
+        </select>
+        <div class="error" id="errAuthor" style="display:none;"></div>
+    </div>
+
+    <div class="form-row">
+        <label for="genreIds">Genres</label>
+        <select id="genreIds" class="input" multiple size="6"></select>
+        <div class="error" id="errGenres" style="display:none;"></div>
+    </div>
+
+    <div class="actions">
+        <button class="btn primary" type="submit">Save</button>
+        <a class="btn" href="/books">Cancel</a>
+    </div>
+</form>
+
+<script type="module" src="/js/book-form.js"></script>
+</body>
+</html>
