@@ -1,0 +1,88 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.shell.boot.StandardCommandsAutoConfiguration
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+  data:
+    mongodb:
+      database: testdb
+      port: 0
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc.fetch_size: 1000
+        default_batch_fetch_size: 200
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+
+  shell:
+    interactive:
+      enabled: false
+    script:
+      enabled: false
+  h2:
+    console:
+      enabled: false
+      path: /h2-console
+  sql:
+    init:
+      mode: never
+      data-locations: classpath:/data.sql
+      schema-locations: [ ]
+
+
+logging:
+  level:
+    io.mongock: debug
+    org.mongodb.driver.cluster: error
+
+app:
+  batch:
+    id-mapping-cache:
+      maximum-size: 500000
+      per-type:
+        author: 20000
+        genre: 1000
+        book: 100000
+        comment: 250000
+    thread-pool:
+      thread-name-prefix: batch-
+      core-pool-size: 4
+      max-pool-size: 8
+      queue-capacity: 0
+    chunk-sizes:
+      authors: 2000
+      genres: 1000
+      books: 10000
+      comments: 20000
+    progress-listeners:
+      authors: ${app.batch.chunk-sizes.authors}
+      genres: ${app.batch.chunk-sizes.genres}
+      books: ${app.batch.chunk-sizes.books}
+      comments: ${app.batch.chunk-sizes.comments}
+
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 7.0.14
+
+mongock:
+  enabled: true
+  transactional: false
+  migration-scan-package:
+    - ru.otus.hw.db.mongo.migration
