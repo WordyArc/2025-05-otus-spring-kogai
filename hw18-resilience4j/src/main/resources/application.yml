@@ -1,6 +1,6 @@
 app:
   logging:
-    dir: ${LOG_DIR:/app/logs}
+    dir: ${LOG_DIR:./app/logs}
     file: ${LOG_FILE:application.log}
 
 server:
