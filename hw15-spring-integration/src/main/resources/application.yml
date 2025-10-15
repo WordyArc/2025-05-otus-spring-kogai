@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+detector:
+  threshold: 3
+  window: PT15S
+  correlation-mode: CLIENT_ID
+
+logging:
+  level:
+    root: INFO
+    ru.otus.hw.ratelimit: DEBUG
+    org.springframework.integration: INFO
+    org.springframework.integration.handler.LoggingHandler: DEBUG
