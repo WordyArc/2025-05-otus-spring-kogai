@@ -104,25 +104,30 @@ wait $PID3
 
 ---
 
-## Retry - Автоматические повторы
+## Retry - демонстрация повторов
 
 ```bash
-echo "=== Тест Retry Pattern (видимость в логах) ==="
+echo "=== Тест Retry ==="
 
-echo "Retry для OpenLibrary: max 3 attempts с exponential backoff"
-echo "При ошибке сервис автоматически повторит запрос до 3 раз"
+echo "Чтение метрик ДО:"
+BEFORE_TOTAL=$(curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary" | jq '.measurements[0].value // 0')
+echo "retry.calls (до): $BEFORE_TOTAL"
 
-echo "Запрос книг (если API доступен - 1 попытка, если нет - 3 попытки):"
-curl -s "http://localhost:8080/api/v1/external/books/search?title=Kubernetes&limit=2" | jq -c '.[:1]'
+echo "Вызов с искусственной задержкой (fail=true) — должен активировать retry:"
+echo "ожидается HTTP 500 после исчерпания попыток"
+curl -s "http://localhost:8080/api/v1/external/books/search-retry-test?title=RetryDemo&limit=1&fail=true"
 
-echo "Метрики Retry:"
-echo "Успешные попытки:"
-curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary&tag=kind:successful_without_retry" | jq '.measurements[0].value' 2>/dev/null || echo "Метрика недоступна (это нормально)"
 
+echo "Чтение метрик ПОСЛЕ:"
+AFTER_TOTAL=$(curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary" | jq '.measurements[0].value // 0')
+echo "retry.calls (после): $AFTER_TOTAL"
+
+echo "успех без ретраев:"; curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary&tag=kind:successful_without_retry" | jq '.measurements[0].value // 0'
+echo "успех после ретраев:"; curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary&tag=kind:successful_with_retry" | jq '.measurements[0].value // 0'
+echo "ошибки после ретраев:"; curl -s "http://localhost:8081/actuator/metrics/resilience4j.retry.calls?tag=name:openlibrary&tag=kind:failed_with_retry" | jq '.measurements[0].value // 0'
 ```
 
 **Ожидаемый результат:**
-- Запрос выполнен успешно
-- Retry срабатывает только при ошибках (не видим явно, если API работает)
+- Значение `retry.calls` после запроса больше, чем до
 
 ---
