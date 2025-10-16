@@ -2,7 +2,10 @@ package ru.otus.hw.integration;
 
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import ru.otus.hw.dto.BookDto;
 
 import java.util.List;
@@ -15,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 public class ExternalController {
 
     private final OpenLibraryService bookSearchService;
+
     private final HttpBinService httpBinService;
 
     @GetMapping("/books/search")

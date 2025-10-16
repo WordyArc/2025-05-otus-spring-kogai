@@ -27,12 +27,16 @@ public class OpenLibraryService {
     @CircuitBreaker(name = "openlibrary", fallbackMethod = "searchByTitleFallback")
     public List<BookDto> searchByTitle(String title, int limit) {
         var response = openLibraryClient.searchByTitle(title, limit);
-        var docs = response == null || response.docs() == null ? List.<OpenLibrarySearchResponse.Doc>of() : response.docs();
+        var docs = response == null || response.docs() == null
+                ? List.<OpenLibrarySearchResponse.Doc>of()
+                : response.docs();
         return docs.stream()
                 .map(d -> new BookDto(
                         null,
                         d.title(),
-                        new AuthorDto(null, d.authorName() == null || d.authorName().isEmpty() ? "-" : d.authorName().get(0)),
+                        new AuthorDto(null, d.authorName() == null || d.authorName().isEmpty()
+                                ? "-"
+                                : d.authorName().get(0)),
                         List.of(new GenreDto(null, "External"))
                 ))
                 .toList();
