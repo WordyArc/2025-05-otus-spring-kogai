@@ -165,7 +165,7 @@ class Resilience4jIntegrationTest {
         void shouldUseFallbackForSlowCalls() throws Exception {
             when(httpBinClient.delay(anyInt()))
                     .thenAnswer(invocation -> {
-                        Thread.sleep(2000); // 2 seconds delay
+                        Thread.sleep(2000);
                         return null;
                     });
 

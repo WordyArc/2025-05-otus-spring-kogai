@@ -12,6 +12,7 @@ import ru.otus.hw.dto.AuthorDto;
 import ru.otus.hw.dto.BookDto;
 import ru.otus.hw.dto.GenreDto;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -44,5 +45,16 @@ public class OpenLibraryService {
 
     private List<BookDto> searchByTitleFallback(String title, int limit, Throwable t) {
         return List.of();
+    }
+
+
+    @Retry(name = "openlibrary")
+    @Bulkhead(name = "openlibrary")
+    @RateLimiter(name = "openlibrary")
+    public List<BookDto> searchByTitleWithRetryTest(String title, int limit, boolean fail) throws IOException {
+        if (fail) {
+            throw new IOException("Simulated I/O failure for retry demonstration");
+        }
+        return searchByTitle(title, limit);
     }
 }
