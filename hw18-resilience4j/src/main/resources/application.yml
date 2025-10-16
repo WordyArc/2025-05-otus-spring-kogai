@@ -78,3 +78,94 @@ management:
     distribution:
       percentiles-histogram:
         http.server.requests: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+        minimum-number-of-calls: 10
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - feign.RetryableException
+    instances:
+      openlibrary:
+        base-config: default
+      httpbin:
+        base-config: default
+        slow-call-duration-threshold: 1s
+      httpbin-slow:
+        base-config: default
+        slow-call-duration-threshold: 1s
+      httpbin-status:
+        base-config: default
+        slow-call-duration-threshold: 1s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - feign.RetryableException
+    instances:
+      openlibrary:
+        base-config: default
+        max-attempts: 3
+      httpbin:
+        base-config: default
+        max-attempts: 2
+  
+  bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 10
+        max-wait-duration: 1000ms
+    instances:
+      openlibrary:
+        base-config: default
+        max-concurrent-calls: 5
+      httpbin:
+        base-config: default
+        max-concurrent-calls: 10
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 50
+        limit-refresh-period: 1s
+        timeout-duration: 500ms
+    instances:
+      openlibrary:
+        base-config: default
+        limit-for-period: 10
+        limit-refresh-period: 1s
+      httpbin:
+        base-config: default
+        limit-for-period: 20
+        limit-refresh-period: 1s
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+        cancel-running-future: true
+    instances:
+      openlibrary:
+        base-config: default
+        timeout-duration: 5s
+      httpbin:
+        base-config: default
+        timeout-duration: 1s
