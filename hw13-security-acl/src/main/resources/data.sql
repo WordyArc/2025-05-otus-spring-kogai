@@ -56,7 +56,6 @@ insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audi
 select aoi.id, 101, s_admin.id, 2,  true, false, false
 from acl_object_identity aoi
 join acl_sid s_admin on s_admin.sid = 'admin' and s_admin.principal = true;
-п
 insert into acl_entry (acl_object_identity, ace_order, sid, mask, granting, audit_success, audit_failure)
 select aoi.id, 102, s_admin.id, 4,  true, false, false
 from acl_object_identity aoi
