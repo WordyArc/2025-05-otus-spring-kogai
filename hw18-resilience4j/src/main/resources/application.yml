@@ -1,0 +1,171 @@
+app:
+  logging:
+    dir: ${LOG_DIR:./app/logs}
+    file: ${LOG_FILE:application.log}
+
+server:
+  forward-headers-strategy: framework
+  port: 8080
+
+spring:
+  application:
+    name: library-service
+  
+  data:
+    rest:
+      base-path: /datarest
+      default-media-type: application/hal+json
+      return-body-on-create: true
+      return-body-on-update: true
+      detection-strategy: annotated
+  
+  datasource:
+    url: jdbc:h2:mem:maindb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 50
+    show-sql: false
+    open-in-view: false
+
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.xml
+  sql:
+    init:
+      platform: postgresql
+      mode: always
+      data-locations: classpath:/data-postgresql.sql
+      schema-locations: [ ]
+  h2:
+    console:
+      enabled: false
+      path: /h2-console
+
+logging:
+  level:
+    ru.otus.hw: DEBUG
+    org.springframework.data.rest: DEBUG
+
+info:
+  app:
+    name: hw16-actuator-hateoas
+
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,logfile,loggers,threaddump,httptrace
+      base-path: /actuator
+    logfile:
+      enabled: true
+      external-file: ${logging.file.name}
+  endpoint:
+    health:
+      show-details: always
+  
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+        minimum-number-of-calls: 10
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 20
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 5
+        register-health-indicator: true
+        record-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - feign.RetryableException
+    instances:
+      openlibrary:
+        base-config: default
+      httpbin:
+        base-config: default
+        slow-call-duration-threshold: 1s
+      httpbin-slow:
+        base-config: default
+        slow-call-duration-threshold: 1s
+      httpbin-status:
+        base-config: default
+        slow-call-duration-threshold: 1s
+  
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 500ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.io.IOException
+          - feign.RetryableException
+    instances:
+      openlibrary:
+        base-config: default
+        max-attempts: 3
+      httpbin:
+        base-config: default
+        max-attempts: 2
+  
+  bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 10
+        max-wait-duration: 1000ms
+    instances:
+      openlibrary:
+        base-config: default
+        max-concurrent-calls: 5
+      httpbin:
+        base-config: default
+        max-concurrent-calls: 10
+  
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 50
+        limit-refresh-period: 1s
+        timeout-duration: 500ms
+    instances:
+      openlibrary:
+        base-config: default
+        limit-for-period: 10
+        limit-refresh-period: 1s
+      httpbin:
+        base-config: default
+        limit-for-period: 20
+        limit-refresh-period: 1s
+  
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 3s
+        cancel-running-future: true
+    instances:
+      openlibrary:
+        base-config: default
+        timeout-duration: 5s
+      httpbin:
+        base-config: default
+        timeout-duration: 1s
